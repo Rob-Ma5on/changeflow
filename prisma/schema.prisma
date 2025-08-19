@@ -1,0 +1,213 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Organization model for multi-tenant SaaS
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  users User[]
+  ecrs  ECR[]
+  ecos  ECO[]
+  ecns  ECN[]
+
+  @@map("organizations")
+}
+
+// User model with role-based access
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  role           UserRole @default(USER)
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // ECR relationships
+  ecrSubmissions ECR[] @relation("ECRSubmitter")
+  ecrAssignments ECR[] @relation("ECRAssignee")
+  ecrApprovals   ECR[] @relation("ECRApprover")
+  
+  // ECO relationships
+  ecoSubmissions ECO[] @relation("ECOSubmitter")
+  ecoAssignments ECO[] @relation("ECOAssignee")
+  ecoApprovals   ECO[] @relation("ECOApprover")
+  
+  // ECN relationships
+  ecnSubmissions ECN[] @relation("ECNSubmitter")
+  ecnAssignments ECN[] @relation("ECNAssignee")
+
+  @@map("users")
+}
+
+// Engineering Change Request (ECR)
+model ECR {
+  id             String    @id @default(cuid())
+  ecrNumber      String    @unique
+  title          String
+  description    String
+  reason         String
+  urgency        Urgency   @default(MEDIUM)
+  status         ECRStatus @default(DRAFT)
+  organizationId String
+  submitterId    String
+  assigneeId     String?
+  approverId     String?
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  rejectedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Impact assessment
+  affectedProducts    String?
+  affectedDocuments   String?
+  costImpact         Decimal?
+  scheduleImpact     String?
+  implementationPlan String?
+
+  // Relationships
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter    User         @relation("ECRSubmitter", fields: [submitterId], references: [id])
+  assignee     User?        @relation("ECRAssignee", fields: [assigneeId], references: [id])
+  approver     User?        @relation("ECRApprover", fields: [approverId], references: [id])
+  ecos         ECO[]
+
+  @@map("ecrs")
+}
+
+// Engineering Change Order (ECO)
+model ECO {
+  id             String    @id @default(cuid())
+  ecoNumber      String    @unique
+  title          String
+  description    String
+  ecrId          String?
+  organizationId String
+  submitterId    String
+  assigneeId     String?
+  approverId     String?
+  status         ECOStatus @default(DRAFT)
+  priority       Priority  @default(MEDIUM)
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Implementation details
+  implementationPlan String?
+  testingPlan       String?
+  rollbackPlan      String?
+  resourcesRequired String?
+  estimatedEffort   String?
+  targetDate        DateTime?
+
+  // Relationships
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter    User         @relation("ECOSubmitter", fields: [submitterId], references: [id])
+  assignee     User?        @relation("ECOAssignee", fields: [assigneeId], references: [id])
+  approver     User?        @relation("ECOApprover", fields: [approverId], references: [id])
+  ecr          ECR?         @relation(fields: [ecrId], references: [id])
+  ecns         ECN[]
+
+  @@map("ecos")
+}
+
+// Engineering Change Notice (ECN)
+model ECN {
+  id             String    @id @default(cuid())
+  ecnNumber      String    @unique
+  title          String
+  description    String
+  ecoId          String?
+  organizationId String
+  submitterId    String
+  assigneeId     String?
+  status         ECNStatus @default(DRAFT)
+  effectiveDate  DateTime?
+  distributedAt  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Change details
+  changesImplemented String?
+  affectedItems      String?
+  dispositionInstructions String?
+  verificationMethod String?
+
+  // Relationships
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter    User         @relation("ECNSubmitter", fields: [submitterId], references: [id])
+  assignee     User?        @relation("ECNAssignee", fields: [assigneeId], references: [id])
+  eco          ECO?         @relation(fields: [ecoId], references: [id])
+
+  @@map("ecns")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  MANAGER
+  ENGINEER
+  USER
+}
+
+enum Urgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ECRStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  IMPLEMENTED
+  CANCELLED
+}
+
+enum ECOStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ECNStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  DISTRIBUTED
+  EFFECTIVE
+  CANCELLED
+}
