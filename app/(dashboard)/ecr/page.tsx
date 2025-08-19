@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 interface ECR {
@@ -8,19 +9,20 @@ interface ECR {
   ecrNumber: string;
   title: string;
   status: string;
-  urgency: string;
+  priority: string;
   submitter: { name: string };
   assignee?: { name: string };
   createdAt: string;
-  submittedAt?: string;
+  estimatedCost?: number;
 }
 
 export default function ECRPage() {
+  const { data: session } = useSession();
   const [ecrs, setEcrs] = useState<ECR[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [urgencyFilter, setUrgencyFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
   useEffect(() => {
     const fetchECRs = async () => {
@@ -29,43 +31,55 @@ export default function ECRPage() {
         const mockECRs: ECR[] = [
           {
             id: '1',
-            ecrNumber: 'ECR-0001',
-            title: 'Improve Widget Assembly Process',
+            ecrNumber: 'ECR-2025-001',
+            title: 'Update Material Specification for Component X',
             status: 'SUBMITTED',
-            urgency: 'HIGH',
+            priority: 'HIGH',
             submitter: { name: 'John Engineer' },
             assignee: { name: 'Sarah Manager' },
-            createdAt: '2024-01-15T10:00:00Z',
-            submittedAt: '2024-01-15T10:00:00Z'
+            createdAt: '2025-01-15T10:00:00Z',
+            estimatedCost: 15000
           },
           {
             id: '2',
-            ecrNumber: 'ECR-0002',
-            title: 'Update Material Specification for Component X',
-            status: 'APPROVED',
-            urgency: 'MEDIUM',
-            submitter: { name: 'Sarah Manager' },
-            assignee: { name: 'John Engineer' },
-            createdAt: '2024-01-20T14:30:00Z',
-            submittedAt: '2024-01-20T14:30:00Z'
+            ecrNumber: 'ECR-2025-002',
+            title: 'Widget Assembly Process Improvement',
+            status: 'DRAFT',
+            priority: 'MEDIUM',
+            submitter: { name: 'Lisa Engineer' },
+            createdAt: '2025-01-12T14:30:00Z',
+            estimatedCost: 8500
           },
           {
             id: '3',
-            ecrNumber: 'ECR-0003',
-            title: 'Redesign Packaging for Product Line A',
-            status: 'UNDER_REVIEW',
-            urgency: 'LOW',
-            submitter: { name: 'Mike Designer' },
-            createdAt: '2024-01-25T09:15:00Z'
+            ecrNumber: 'ECR-2025-003',
+            title: 'Safety Enhancement for Manufacturing Line 2',
+            status: 'APPROVED',
+            priority: 'HIGH',
+            submitter: { name: 'Mike Safety' },
+            assignee: { name: 'John Engineer' },
+            createdAt: '2025-01-10T09:15:00Z',
+            estimatedCost: 25000
           },
           {
             id: '4',
-            ecrNumber: 'ECR-0004',
-            title: 'Safety Enhancement for Manufacturing Line 2',
-            status: 'DRAFT',
-            urgency: 'CRITICAL',
-            submitter: { name: 'Lisa Safety' },
-            createdAt: '2024-01-28T11:45:00Z'
+            ecrNumber: 'ECR-2025-004',
+            title: 'Packaging Design Update for Product Line A',
+            status: 'UNDER_REVIEW',
+            priority: 'LOW',
+            submitter: { name: 'Anna Designer' },
+            assignee: { name: 'Sarah Manager' },
+            createdAt: '2025-01-08T11:45:00Z',
+            estimatedCost: 5000
+          },
+          {
+            id: '5',
+            ecrNumber: 'ECR-2025-005',
+            title: 'Environmental Compliance Update',
+            status: 'REJECTED',
+            priority: 'MEDIUM',
+            submitter: { name: 'Tom Compliance' },
+            createdAt: '2025-01-05T16:20:00Z'
           }
         ];
         setEcrs(mockECRs);
@@ -81,34 +95,49 @@ export default function ECRPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      DRAFT: 'bg-gray-100 text-gray-800',
-      SUBMITTED: 'bg-blue-100 text-blue-800',
-      UNDER_REVIEW: 'bg-amber-100 text-amber-800',
-      APPROVED: 'bg-green-100 text-green-800',
-      REJECTED: 'bg-red-100 text-red-800',
-      IMPLEMENTED: 'bg-green-100 text-green-800',
-      CANCELLED: 'bg-gray-100 text-gray-800'
+      DRAFT: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Draft' },
+      SUBMITTED: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Submitted' },
+      UNDER_REVIEW: { bg: 'bg-amber-100', text: 'text-amber-800', label: 'Under Review' },
+      APPROVED: { bg: 'bg-green-100', text: 'text-green-800', label: 'Approved' },
+      REJECTED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rejected' },
+      IMPLEMENTED: { bg: 'bg-green-100', text: 'text-green-800', label: 'Implemented' },
+      CANCELLED: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Cancelled' }
     };
-    return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800';
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT;
+    return `${config.bg} ${config.text}`;
   };
 
-  const getUrgencyBadge = (urgency: string) => {
-    const urgencyConfig = {
-      LOW: 'bg-green-100 text-green-800',
-      MEDIUM: 'bg-amber-100 text-amber-800',
-      HIGH: 'bg-orange-100 text-orange-800',
-      CRITICAL: 'bg-red-100 text-red-800'
+  const getStatusLabel = (status: string) => {
+    const statusConfig = {
+      DRAFT: 'Draft',
+      SUBMITTED: 'Submitted',
+      UNDER_REVIEW: 'Under Review',
+      APPROVED: 'Approved',
+      REJECTED: 'Rejected',
+      IMPLEMENTED: 'Implemented',
+      CANCELLED: 'Cancelled'
     };
-    return urgencyConfig[urgency as keyof typeof urgencyConfig] || 'bg-gray-100 text-gray-800';
+    return statusConfig[status as keyof typeof statusConfig] || status;
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const priorityConfig = {
+      LOW: { bg: 'bg-green-100', text: 'text-green-800' },
+      MEDIUM: { bg: 'bg-amber-100', text: 'text-amber-800' },
+      HIGH: { bg: 'bg-orange-100', text: 'text-orange-800' },
+      CRITICAL: { bg: 'bg-red-100', text: 'text-red-800' }
+    };
+    const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.MEDIUM;
+    return `${config.bg} ${config.text}`;
   };
 
   const filteredECRs = ecrs.filter((ecr) => {
     const matchesSearch = ecr.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ecr.ecrNumber.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || ecr.status === statusFilter;
-    const matchesUrgency = urgencyFilter === 'all' || ecr.urgency === urgencyFilter;
+    const matchesPriority = priorityFilter === 'all' || ecr.priority === priorityFilter;
     
-    return matchesSearch && matchesStatus && matchesUrgency;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const formatDate = (dateString: string) => {
@@ -117,6 +146,15 @@ export default function ECRPage() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const formatCurrency = (amount?: number) => {
+    if (!amount) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0
+    }).format(amount);
   };
 
   if (loading) {
@@ -135,10 +173,15 @@ export default function ECRPage() {
           <h1 className="text-3xl font-bold text-gray-900">Engineering Change Requests</h1>
           <p className="text-gray-600 mt-2">Manage and track all change requests</p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-          <span className="mr-2">+</span>
+        <Link
+          href="/dashboard/ecr/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
           New ECR
-        </button>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -151,7 +194,7 @@ export default function ECRPage() {
             <input
               type="text"
               id="search"
-              placeholder="Search ECRs..."
+              placeholder="Search by title or ECR number..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -180,16 +223,16 @@ export default function ECRPage() {
           </div>
 
           <div>
-            <label htmlFor="urgency" className="block text-sm font-medium text-gray-700 mb-1">
-              Urgency
+            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
+              Priority
             </label>
             <select
-              id="urgency"
+              id="priority"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              value={urgencyFilter}
-              onChange={(e) => setUrgencyFilter(e.target.value)}
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
             >
-              <option value="all">All Urgencies</option>
+              <option value="all">All Priorities</option>
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
               <option value="HIGH">High</option>
@@ -212,50 +255,50 @@ export default function ECRPage() {
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Priority
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Urgency
+                  Requestor
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Submitter
+                  Estimated Cost
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Assignee
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
+                  Created Date
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredECRs.map((ecr) => (
-                <tr key={ecr.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                    <Link href={`/dashboard/ecr/${ecr.id}`} className="hover:text-blue-800">
+                <tr key={ecr.id} className="hover:bg-gray-50 cursor-pointer">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <Link href={`/dashboard/ecr/${ecr.id}`} className="text-blue-600 hover:text-blue-800">
                       {ecr.ecrNumber}
                     </Link>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm text-gray-900">
                     <div className="max-w-xs truncate">
                       {ecr.title}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecr.status)}`}>
-                      {ecr.status.replace('_', ' ')}
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityBadge(ecr.priority)}`}>
+                      {ecr.priority}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getUrgencyBadge(ecr.urgency)}`}>
-                      {ecr.urgency}
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecr.status)}`}>
+                      {getStatusLabel(ecr.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {ecr.submitter.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {ecr.assignee?.name || 'Unassigned'}
+                    {formatCurrency(ecr.estimatedCost)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(ecr.createdAt)}
@@ -268,7 +311,28 @@ export default function ECRPage() {
 
         {filteredECRs.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No ECRs found matching your criteria.</p>
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No ECRs found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all'
+                ? 'Try adjusting your search or filter criteria.'
+                : 'Get started by creating your first Engineering Change Request.'}
+            </p>
+            {!searchTerm && statusFilter === 'all' && priorityFilter === 'all' && (
+              <div className="mt-6">
+                <Link
+                  href="/dashboard/ecr/new"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  New ECR
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

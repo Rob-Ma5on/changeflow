@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
+    const session = await getServerSession();
+    
+    if (!session?.user) {
       return NextResponse.json(
-        { error: 'Organization ID is required' },
-        { status: 400 }
+        { error: 'Unauthorized' },
+        { status: 401 }
       );
     }
+
+    const organizationId = session.user.organizationId;
 
     const ecrs = await prisma.eCR.findMany({
       where: {
@@ -40,14 +42,21 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession();
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       title,
       description,
       reason,
       urgency,
-      organizationId,
-      submitterId,
       assigneeId,
       affectedProducts,
       affectedDocuments,
@@ -56,23 +65,32 @@ export async function POST(request: NextRequest) {
       implementationPlan,
     } = body;
 
-    if (!title || !description || !reason || !organizationId || !submitterId) {
+    if (!title || !description || !reason) {
       return NextResponse.json(
         { error: 'Required fields are missing' },
         { status: 400 }
       );
     }
 
+    const organizationId = session.user.organizationId;
+    const submitterId = session.user.id;
+
+    const currentYear = new Date().getFullYear();
     const latestEcr = await prisma.eCR.findFirst({
-      where: { organizationId },
+      where: { 
+        organizationId,
+        ecrNumber: {
+          startsWith: `ECR-${currentYear}-`
+        }
+      },
       orderBy: { ecrNumber: 'desc' },
       select: { ecrNumber: true },
     });
 
     const nextNumber = latestEcr
-      ? parseInt(latestEcr.ecrNumber.split('-')[1]) + 1
+      ? parseInt(latestEcr.ecrNumber.split('-')[2]) + 1
       : 1;
-    const ecrNumber = `ECR-${nextNumber.toString().padStart(4, '0')}`;
+    const ecrNumber = `ECR-${currentYear}-${nextNumber.toString().padStart(3, '0')}`;
 
     const ecr = await prisma.eCR.create({
       data: {

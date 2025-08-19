@@ -16,7 +16,7 @@ export default withAuth(
         }
         
         // Require authentication for dashboard and API routes
-        if (pathname.startsWith('/dashboard') || pathname.startsWith('/api/')) {
+        if (pathname.startsWith('/dashboard') || pathname.includes('/(dashboard)') || pathname.startsWith('/api/')) {
           // Skip auth check for NextAuth API routes and signup
           if (pathname.startsWith('/api/auth') || pathname.startsWith('/api/auth/signup')) {
             return true;
@@ -32,7 +32,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
+    '/(dashboard)/:path*',
     '/api/:path*',
     '/login',
     '/signup'
