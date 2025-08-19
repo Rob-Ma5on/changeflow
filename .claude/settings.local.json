@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sudo chown:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)"
+    ],
+    "deny": []
+  }
+}
