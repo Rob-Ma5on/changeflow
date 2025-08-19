@@ -10,7 +10,9 @@
       "Bash(npx prisma:*)",
       "Bash(mkdir:*)",
       "Bash(source:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
