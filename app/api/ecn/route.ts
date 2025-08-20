@@ -1,34 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
       return NextResponse.json(
-        { error: 'Organization ID is required' },
-        { status: 400 }
+        { error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    const organizationId = session.user.organizationId;
+
+    const whereClause: any = {
+      organizationId,
+    };
+
+    // Add status filter if provided
+    if (status) {
+      whereClause.status = status;
+    }
+
     const ecns = await prisma.eCN.findMany({
-      where: {
-        organizationId,
-      },
+      where: whereClause,
       include: {
         submitter: { select: { id: true, name: true, email: true } },
         assignee: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
-        eco: { 
-          select: { 
-            id: true, 
-            ecoNumber: true, 
+        eco: {
+          select: {
+            id: true,
+            ecoNumber: true,
             title: true,
-            ecr: { select: { id: true, ecrNumber: true, title: true } }
-          } 
-        },
+            status: true,
+            completedAt: true,
+            ecr: {
+              select: {
+                id: true,
+                ecrNumber: true,
+                title: true,
+                submitter: { select: { name: true } }
+              }
+            }
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc',

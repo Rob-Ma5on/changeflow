@@ -16,7 +16,9 @@
       "Bash(ls:*)",
       "Bash(rm:*)",
       "Bash(git push:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(PORT=3001 npm run dev)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

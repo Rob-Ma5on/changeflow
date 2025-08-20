@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -17,14 +18,20 @@ async function main() {
   });
   console.log('✓ Created organization:', organization.name);
 
+  // Hash password for demo users
+  const hashedPassword = await bcrypt.hash('password123', 12);
+
   // Create admin user
   const adminUser = await prisma.user.upsert({
-    where: { id: 'demo-admin-1' },
-    update: {},
+    where: { email: 'admin@acme-mfg.com' },
+    update: {
+      password: hashedPassword,
+      organizationId: organization.id,
+    },
     create: {
-      id: 'demo-admin-1',
       email: 'admin@acme-mfg.com',
       name: 'Admin User',
+      password: hashedPassword,
       role: 'ADMIN',
       organizationId: organization.id,
     },
@@ -33,24 +40,30 @@ async function main() {
 
   // Create engineering users
   const engineer1 = await prisma.user.upsert({
-    where: { id: 'demo-engineer-1' },
-    update: {},
+    where: { email: 'john.engineer@acme-mfg.com' },
+    update: {
+      password: hashedPassword,
+      organizationId: organization.id,
+    },
     create: {
-      id: 'demo-engineer-1',
       email: 'john.engineer@acme-mfg.com',
       name: 'John Engineer',
+      password: hashedPassword,
       role: 'ENGINEER',
       organizationId: organization.id,
     },
   });
 
   const engineer2 = await prisma.user.upsert({
-    where: { id: 'demo-engineer-2' },
-    update: {},
+    where: { email: 'sarah.manager@acme-mfg.com' },
+    update: {
+      password: hashedPassword,
+      organizationId: organization.id,
+    },
     create: {
-      id: 'demo-engineer-2',
       email: 'sarah.manager@acme-mfg.com',
       name: 'Sarah Manager',
+      password: hashedPassword,
       role: 'MANAGER',
       organizationId: organization.id,
     },
@@ -164,8 +177,8 @@ async function main() {
   console.log('');
   console.log('Demo data created:');
   console.log(`- Organization: ${organization.name}`);
-  console.log(`- Admin User: ${adminUser.email}`);
-  console.log(`- Engineers: ${engineer1.name}, ${engineer2.name}`);
+  console.log(`- Admin User: ${adminUser.email} (password: password123)`);
+  console.log(`- Engineers: ${engineer1.name}, ${engineer2.name} (password: password123)`);
   console.log(`- ECRs: ${ecr1.ecrNumber}, ${ecr2.ecrNumber}`);
   console.log(`- ECO: ${eco1.ecoNumber}`);
   console.log(`- ECN: ${ecn1.ecnNumber}`);

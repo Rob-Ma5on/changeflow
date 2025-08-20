@@ -45,6 +45,13 @@ export default function NewECRPage() {
     setIsLoading(true);
     setError('');
 
+    // Check if user is logged in
+    if (!session?.user) {
+      setError('You must be logged in to create an ECR. Please sign up or log in.');
+      setIsLoading(false);
+      return;
+    }
+
     // Validate required fields
     if (!formData.title.trim()) {
       setError('Title is required');
@@ -75,8 +82,6 @@ export default function NewECRPage() {
           description: formData.description.trim(),
           reason: formData.reason.trim(),
           urgency: formData.priority,
-          organizationId: session?.user?.organizationId,
-          submitterId: session?.user?.id,
           affectedProducts: formData.affectedProducts.trim() || null,
           affectedDocuments: formData.affectedDocuments.trim() || null,
           costImpact: formData.estimatedCost ? parseFloat(formData.estimatedCost) : null,
@@ -137,7 +142,7 @@ export default function NewECRPage() {
                   id="title"
                   name="title"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="Brief descriptive title for the change request"
                   value={formData.title}
                   onChange={handleChange}
@@ -153,7 +158,7 @@ export default function NewECRPage() {
                   name="description"
                   required
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="Detailed description of the proposed change"
                   value={formData.description}
                   onChange={handleChange}
@@ -169,7 +174,7 @@ export default function NewECRPage() {
                   name="reason"
                   required
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="Explain why this change is needed and its business benefits"
                   value={formData.reason}
                   onChange={handleChange}
@@ -184,7 +189,7 @@ export default function NewECRPage() {
                   <select
                     id="priority"
                     name="priority"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     value={formData.priority}
                     onChange={handleChange}
                   >
@@ -205,7 +210,7 @@ export default function NewECRPage() {
                     name="estimatedCost"
                     min="0"
                     step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     placeholder="0.00"
                     value={formData.estimatedCost}
                     onChange={handleChange}
@@ -228,7 +233,7 @@ export default function NewECRPage() {
                   type="text"
                   id="affectedProducts"
                   name="affectedProducts"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="List products that will be affected by this change"
                   value={formData.affectedProducts}
                   onChange={handleChange}
@@ -243,7 +248,7 @@ export default function NewECRPage() {
                   type="text"
                   id="affectedDocuments"
                   name="affectedDocuments"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="List drawings, specifications, or other documents that need updates"
                   value={formData.affectedDocuments}
                   onChange={handleChange}
@@ -258,7 +263,7 @@ export default function NewECRPage() {
                   id="implementationPlan"
                   name="implementationPlan"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="High-level plan for implementing this change"
                   value={formData.implementationPlan}
                   onChange={handleChange}

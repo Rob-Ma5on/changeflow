@@ -1,10 +1,10 @@
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -28,7 +28,12 @@ const handler = NextAuth({
             }
           });
 
+          console.log('Auth attempt for:', credentials.email);
+          console.log('User found:', user ? 'Yes' : 'No');
+          console.log('User has password:', user?.password ? 'Yes' : 'No');
+
           if (!user || !user.password) {
+            console.log('Auth failed: No user or no password');
             return null;
           }
 
@@ -37,7 +42,10 @@ const handler = NextAuth({
             user.password
           );
 
+          console.log('Password valid:', isPasswordValid);
+
           if (!isPasswordValid) {
+            console.log('Auth failed: Invalid password');
             return null;
           }
 
@@ -83,6 +91,8 @@ const handler = NextAuth({
     signUp: '/signup'
   },
   secret: process.env.NEXTAUTH_SECRET
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
