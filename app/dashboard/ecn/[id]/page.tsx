@@ -459,12 +459,16 @@ export default function ECNDetailPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Priority</label>
-                <span className={`inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full ${
-                  ecn.eco.priority === 'LOW' ? 'bg-green-100 text-green-800' :
-                  ecn.eco.priority === 'MEDIUM' ? 'bg-amber-100 text-amber-800' :
-                  ecn.eco.priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
+                <span 
+                  className="inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full text-white"
+                  style={{
+                    backgroundColor: 
+                      ecn.eco.priority === 'LOW' ? '#22C55E' :
+                      ecn.eco.priority === 'MEDIUM' ? '#EAB308' :
+                      ecn.eco.priority === 'HIGH' ? '#EF4444' :
+                      '#6B7280'
+                  }}
+                >
                   {ecn.eco.priority}
                 </span>
               </div>

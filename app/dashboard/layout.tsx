@@ -22,15 +22,6 @@ const navigation = [
     )
   },
   {
-    name: 'Workflow',
-    href: '/dashboard/workflow',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    )
-  },
-  {
     name: 'Engineering Change Requests',
     href: '/dashboard/ecr',
     icon: (
@@ -72,6 +63,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Show loading if session is loading
   if (status === 'loading') {
@@ -93,18 +85,45 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <Link href="/dashboard" className="text-xl font-bold" style={{ color: '#0066CC' }}>
+            ChangeFlow
+          </Link>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-md text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center h-16 px-6 border-b border-gray-200">
-            <Link href="/dashboard" className="text-xl font-bold text-blue-600">
+            <Link href="/dashboard" className="text-xl font-bold" style={{ color: '#0066CC' }}>
               ChangeFlow
             </Link>
           </div>
 
           {/* Organization Info */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="px-6 py-4 border-b border-gray-200" style={{ backgroundColor: '#F9FAFB' }}>
             <p className="text-sm font-medium text-gray-900">
               {session?.user?.organization || 'Organization'}
             </p>
@@ -123,11 +142,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   href={item.href}
                   className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'border-r-2'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
+                  style={{
+                    backgroundColor: isActive ? '#DBEAFE' : 'transparent',
+                    color: isActive ? '#0066CC' : undefined,
+                    borderRightColor: isActive ? '#0066CC' : undefined
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = '#F9FAFB';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                 >
-                  <span className={`mr-3 ${isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'}`}>
+                  <span 
+                    className={`mr-3 ${isActive ? '' : 'text-gray-400 group-hover:text-gray-500'}`}
+                    style={{ color: isActive ? '#0066CC' : undefined }}
+                  >
                     {item.icon}
                   </span>
                   {item.name}
@@ -144,7 +181,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 className="flex items-center w-full px-3 py-2 text-sm text-left text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
               >
                 <div className="flex-shrink-0 mr-3">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#0066CC' }}>
                     <span className="text-white text-sm font-medium">
                       {session?.user?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
@@ -190,8 +227,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className="pl-64">
-        <main className="p-8">
+      <div className="lg:pl-64 pt-16 lg:pt-0" style={{ backgroundColor: '#F9FAFB' }}>
+        <main className="p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

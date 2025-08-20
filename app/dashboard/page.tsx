@@ -9,6 +9,7 @@ interface DashboardStats {
   openEcrs: number;
   ecosInProgress: number;
   pendingEcns: number;
+  completedThisMonth: number;
   recentActivity: Array<{
     id: string;
     type: 'ECR' | 'ECO' | 'ECN';
@@ -27,6 +28,7 @@ export default function DashboardPage() {
     openEcrs: 0,
     ecosInProgress: 0,
     pendingEcns: 0,
+    completedThisMonth: 0,
     recentActivity: []
   });
   const [loading, setLoading] = useState(true);
@@ -34,53 +36,33 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        // Mock data for now - replace with actual API calls
-        setStats({
-          totalEcrs: 25,
-          openEcrs: 8,
-          ecosInProgress: 5,
-          pendingEcns: 3,
-          recentActivity: [
-            {
-              id: '1',
-              type: 'ECR',
-              number: 'ECR-2025-001',
-              title: 'Update Material Specification for Component X',
-              status: 'Submitted',
-              date: '2025-01-15',
-              user: 'John Engineer'
-            },
-            {
-              id: '2',
-              type: 'ECO',
-              number: 'ECO-2025-001',
-              title: 'Implement Safety Enhancement',
-              status: 'In Progress',
-              date: '2025-01-14',
-              user: 'Sarah Manager'
-            },
-            {
-              id: '3',
-              type: 'ECN',
-              number: 'ECN-2025-001',
-              title: 'Packaging Design Change Notice',
-              status: 'Pending Approval',
-              date: '2025-01-13',
-              user: 'Mike Designer'
-            },
-            {
-              id: '4',
-              type: 'ECR',
-              number: 'ECR-2025-002',
-              title: 'Widget Assembly Process Improvement',
-              status: 'Draft',
-              date: '2025-01-12',
-              user: 'Lisa Engineer'
-            }
-          ]
-        });
+        const response = await fetch('/api/dashboard');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        } else {
+          console.error('Failed to fetch dashboard stats');
+          // Fallback to basic stats if API fails
+          setStats({
+            totalEcrs: 0,
+            openEcrs: 0,
+            ecosInProgress: 0,
+            pendingEcns: 0,
+            completedThisMonth: 0,
+            recentActivity: []
+          });
+        }
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
+        // Fallback to basic stats if API fails
+        setStats({
+          totalEcrs: 0,
+          openEcrs: 0,
+          ecosInProgress: 0,
+          pendingEcns: 0,
+          completedThisMonth: 0,
+          recentActivity: []
+        });
       } finally {
         setLoading(false);
       }
@@ -89,24 +71,27 @@ export default function DashboardPage() {
     fetchDashboardStats();
   }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case 'draft':
-        return 'bg-gray-100 text-gray-800';
+        return { backgroundColor: '#F3F4F6', color: '#374151' };
       case 'submitted':
-      case 'pending approval':
-        return 'bg-amber-100 text-amber-800';
+      case 'pending_approval':
+      case 'under_review':
+        return { backgroundColor: '#FEF3C7', color: '#D97706' };
       case 'approved':
-      case 'in progress':
-        return 'bg-blue-100 text-blue-800';
+      case 'in_progress':
+        return { backgroundColor: '#DBEAFE', color: '#2563EB' };
       case 'completed':
       case 'distributed':
-        return 'bg-green-100 text-green-800';
+      case 'effective':
+      case 'converted':
+        return { backgroundColor: '#D1FAE5', color: '#059669' };
       case 'rejected':
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return { backgroundColor: '#FEE2E2', color: '#DC2626' };
       default:
-        return 'bg-gray-100 text-gray-800';
+        return { backgroundColor: '#F3F4F6', color: '#374151' };
     }
   };
 
@@ -114,15 +99,15 @@ export default function DashboardPage() {
     switch (type) {
       case 'ECR':
         return (
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3B82F6' }}></div>
         );
       case 'ECO':
         return (
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }}></div>
         );
       case 'ECN':
         return (
-          <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#F59E0B' }}></div>
         );
       default:
         return (
@@ -134,7 +119,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#0066CC' }}></div>
       </div>
     );
   }
@@ -152,7 +137,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Link href="/dashboard/ecr" className="block">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center">
@@ -221,7 +206,7 @@ export default function DashboardPage() {
             </div>
             <div className="ml-4 flex-1">
               <p className="text-sm font-medium text-gray-600">This Month</p>
-              <p className="text-2xl font-semibold text-gray-900">12</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.completedThisMonth}</p>
               <p className="text-xs text-gray-500">Changes Completed</p>
             </div>
           </div>
@@ -318,8 +303,11 @@ export default function DashboardPage() {
                         <div className="mt-1">
                           <p className="text-sm text-gray-700">{activity.title}</p>
                           <div className="mt-2 flex items-center space-x-2">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
-                              {activity.status}
+                            <span 
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                              style={getStatusStyle(activity.status)}
+                            >
+                              {activity.status.replace(/_/g, ' ')}
                             </span>
                             <span className="text-xs text-gray-500">by {activity.user}</span>
                           </div>

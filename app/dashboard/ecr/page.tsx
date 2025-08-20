@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
+import ViewToggle, { ViewMode } from '@/components/view-toggle';
+import FilterBar, { FilterState } from '@/components/filter-bar';
+import EntityCard from '@/components/entity-card';
+import ColumnHeader, { SortDirection } from '@/components/column-header';
 
 interface ECR {
   id: string;
@@ -25,9 +29,16 @@ export default function ECRPage() {
   const { data: session } = useSession();
   const [ecrs, setEcrs] = useState<ECR[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [urgencyFilter, setUrgencyFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    status: '',
+    priority: '',
+    category: '',
+    assignee: '',
+    dateRange: { start: '', end: '' }
+  });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ key: '', direction: null });
   const [selectedECRs, setSelectedECRs] = useState<string[]>([]);
   const [showBundleModal, setShowBundleModal] = useState(false);
   const [bundleTitle, setBundleTitle] = useState('');
@@ -87,24 +98,24 @@ export default function ECRPage() {
     return statusConfig[status as keyof typeof statusConfig] || status;
   };
 
-  const getUrgencyBadge = (urgency: string) => {
+  const getUrgencyStyle = (urgency: string) => {
     const urgencyConfig = {
-      LOW: { bg: 'bg-green-100', text: 'text-green-800' },
-      MEDIUM: { bg: 'bg-amber-100', text: 'text-amber-800' },
-      HIGH: { bg: 'bg-orange-100', text: 'text-orange-800' },
-      CRITICAL: { bg: 'bg-red-100', text: 'text-red-800' }
+      LOW: { backgroundColor: '#22C55E', color: '#FFFFFF' },
+      MEDIUM: { backgroundColor: '#EAB308', color: '#FFFFFF' },
+      HIGH: { backgroundColor: '#EF4444', color: '#FFFFFF' },
+      CRITICAL: { backgroundColor: '#EF4444', color: '#FFFFFF' }
     };
-    const config = urgencyConfig[urgency as keyof typeof urgencyConfig] || urgencyConfig.MEDIUM;
-    return `${config.bg} ${config.text}`;
+    return urgencyConfig[urgency as keyof typeof urgencyConfig] || urgencyConfig.MEDIUM;
   };
 
   const filteredECRs = ecrs.filter((ecr) => {
-    const matchesSearch = ecr.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ecr.ecrNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || ecr.status === statusFilter;
-    const matchesUrgency = urgencyFilter === 'all' || ecr.urgency === urgencyFilter;
+    const matchesSearch = !filters.search ||
+      ecr.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+      ecr.ecrNumber.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesStatus = !filters.status || ecr.status === filters.status;
+    const matchesPriority = !filters.priority || ecr.urgency === filters.priority;
     
-    return matchesSearch && matchesStatus && matchesUrgency;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const approvedECRs = filteredECRs.filter(ecr => ecr.status === 'APPROVED');
@@ -192,6 +203,27 @@ export default function ECRPage() {
     }
   };
 
+  const handleSort = (key: string) => {
+    let direction: SortDirection = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = null;
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedECRs = [...filteredECRs].sort((a, b) => {
+    if (!sortConfig.direction) return 0;
+    
+    const aValue = a[sortConfig.key as keyof ECR];
+    const bValue = b[sortConfig.key as keyof ECR];
+    
+    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -199,6 +231,24 @@ export default function ECRPage() {
       day: 'numeric'
     });
   };
+
+  const statusOptions = [
+    { value: 'DRAFT', label: 'Draft' },
+    { value: 'SUBMITTED', label: 'Submitted' },
+    { value: 'UNDER_REVIEW', label: 'Under Review' },
+    { value: 'APPROVED', label: 'Approved' },
+    { value: 'CONVERTED', label: 'Converted to ECO' },
+    { value: 'REJECTED', label: 'Rejected' },
+    { value: 'IMPLEMENTED', label: 'Implemented' },
+    { value: 'CANCELLED', label: 'Cancelled' }
+  ];
+
+  const kanbanColumns = [
+    { id: 'DRAFT', title: 'Draft', status: ['DRAFT'] },
+    { id: 'REVIEW', title: 'Under Review', status: ['SUBMITTED', 'UNDER_REVIEW'] },
+    { id: 'APPROVED', title: 'Approved', status: ['APPROVED'] },
+    { id: 'COMPLETE', title: 'Complete', status: ['CONVERTED', 'IMPLEMENTED', 'REJECTED', 'CANCELLED'] }
+  ];
 
   const formatCurrency = (amount?: number) => {
     if (!amount) return 'N/A';
@@ -220,214 +270,246 @@ export default function ECRPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Engineering Change Requests</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Engineering Change Requests</h1>
           <p className="text-gray-600 mt-2">Manage and track all change requests</p>
         </div>
-        <div className="flex space-x-3">
-          {selectedApprovedECRs.length >= 2 && (
-            <button
-              onClick={() => setShowBundleModal(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+          <div className="flex flex-col sm:flex-row gap-2">
+            {selectedApprovedECRs.length >= 2 && (
+              <button
+                onClick={() => setShowBundleModal(true)}
+                className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                <span className="hidden sm:inline">Bundle {selectedApprovedECRs.length} ECRs into ECO</span>
+                <span className="sm:hidden">Bundle ({selectedApprovedECRs.length})</span>
+              </button>
+            )}
+            <Link
+              href="/dashboard/ecr/new"
+              className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Bundle {selectedApprovedECRs.length} ECRs into ECO
-            </button>
-          )}
-          <Link
-            href="/dashboard/ecr/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New ECR
-          </Link>
+              New ECR
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-              Search
-            </label>
-            <input
-              type="text"
-              id="search"
-              placeholder="Search by title or ECR number..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              id="status"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="SUBMITTED">Submitted</option>
-              <option value="UNDER_REVIEW">Under Review</option>
-              <option value="APPROVED">Approved</option>
-              <option value="CONVERTED">Converted to ECO</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="IMPLEMENTED">Implemented</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
+      <FilterBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        statusOptions={statusOptions}
+      />
 
-          <div>
-            <label htmlFor="urgency" className="block text-sm font-medium text-gray-700 mb-1">
-              Urgency
-            </label>
-            <select
-              id="urgency"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              value={urgencyFilter}
-              onChange={(e) => setUrgencyFilter(e.target.value)}
-            >
-              <option value="all">All Urgencies</option>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="CRITICAL">Critical</option>
-            </select>
-          </div>
+      {/* Main Content */}
+      {viewMode === 'kanban' ? (
+        // Kanban View
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {kanbanColumns.map((column) => {
+            const columnECRs = sortedECRs.filter(ecr => column.status.includes(ecr.status));
+            return (
+              <div key={column.id} className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900">{column.title}</h3>
+                  <span className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
+                    {columnECRs.length}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {columnECRs.map((ecr) => (
+                    <div key={ecr.id} className="relative">
+                      {ecr.status === 'APPROVED' && (
+                        <input
+                          type="checkbox"
+                          checked={selectedECRs.includes(ecr.id)}
+                          onChange={() => handleSelectECR(ecr.id)}
+                          className="absolute top-2 right-2 z-10 text-blue-600 focus:ring-blue-500"
+                        />
+                      )}
+                      <EntityCard
+                        entityType="ECR"
+                        number={ecr.ecrNumber}
+                        title={ecr.title}
+                        priority={ecr.urgency as 'HIGH' | 'MEDIUM' | 'LOW'}
+                        status={ecr.status}
+                        requestor={{
+                          name: ecr.submitter.name,
+                          email: ecr.submitter.email
+                        }}
+                        createdDate={ecr.createdAt}
+                        onClick={() => window.location.href = `/dashboard/ecr/${ecr.id}`}
+                        className={ecr.status === 'APPROVED' ? 'pr-8' : ''}
+                      />
+                    </div>
+                  ))}
+                  {columnECRs.length === 0 && (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      No ECRs in {column.title.toLowerCase()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
-
-      {/* ECR Table */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="mr-2"
-                      checked={selectedApprovedECRs.length > 0 && selectedApprovedECRs.length === approvedECRs.length}
-                      onChange={handleSelectAll}
-                      disabled={approvedECRs.length === 0}
-                    />
-                    Select
-                  </div>
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ECR Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Urgency
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Requestor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estimated Cost
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredECRs.map((ecr) => (
-                <tr key={ecr.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {ecr.status === 'APPROVED' ? (
+      ) : (
+        // List View
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center">
                       <input
                         type="checkbox"
-                        checked={selectedECRs.includes(ecr.id)}
-                        onChange={() => handleSelectECR(ecr.id)}
-                        className="text-blue-600 focus:ring-blue-500"
+                        className="mr-2"
+                        checked={selectedApprovedECRs.length > 0 && selectedApprovedECRs.length === approvedECRs.length}
+                        onChange={handleSelectAll}
+                        disabled={approvedECRs.length === 0}
                       />
-                    ) : (
-                      <span className="text-gray-400 text-xs">
-                        {ecr.status !== 'APPROVED' ? 'Not eligible' : ''}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium cursor-pointer" onClick={() => window.location.href = `/dashboard/ecr/${ecr.id}`}>
-                    <Link href={`/dashboard/ecr/${ecr.id}`} className="text-blue-600 hover:text-blue-800">
-                      {ecr.ecrNumber}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    <div className="max-w-xs truncate">
-                      {ecr.title}
+                      Select
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getUrgencyBadge(ecr.urgency)}`}>
-                      {ecr.urgency}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecr.status)}`}>
-                      {getStatusLabel(ecr.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {ecr.submitter.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(ecr.costImpact)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(ecr.createdAt)}
-                  </td>
+                  </th>
+                  <ColumnHeader
+                    title="ECR Number"
+                    sortKey="ecrNumber"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <ColumnHeader
+                    title="Title"
+                    sortKey="title"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <ColumnHeader
+                    title="Priority"
+                    sortKey="urgency"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <ColumnHeader
+                    title="Status"
+                    sortKey="status"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <ColumnHeader
+                    title="Requestor"
+                    sortKey="submitter"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                    className="hidden md:table-cell"
+                  />
+                  <ColumnHeader
+                    title="Estimated Cost"
+                    sortKey="costImpact"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                    className="hidden lg:table-cell"
+                  />
+                  <ColumnHeader
+                    title="Created Date"
+                    sortKey="createdAt"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                    className="hidden sm:table-cell"
+                  />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredECRs.length === 0 && (
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No ECRs found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || statusFilter !== 'all' || urgencyFilter !== 'all'
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Get started by creating your first Engineering Change Request.'}
-            </p>
-            {!searchTerm && statusFilter === 'all' && urgencyFilter === 'all' && (
-              <div className="mt-6">
-                <Link
-                  href="/dashboard/ecr/new"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  New ECR
-                </Link>
-              </div>
-            )}
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {sortedECRs.map((ecr) => (
+                  <tr key={ecr.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {ecr.status === 'APPROVED' ? (
+                        <input
+                          type="checkbox"
+                          checked={selectedECRs.includes(ecr.id)}
+                          onChange={() => handleSelectECR(ecr.id)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">
+                          {ecr.status !== 'APPROVED' ? 'Not eligible' : ''}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium cursor-pointer" onClick={() => window.location.href = `/dashboard/ecr/${ecr.id}`}>
+                      <Link href={`/dashboard/ecr/${ecr.id}`} className="text-blue-600 hover:text-blue-800">
+                        {ecr.ecrNumber}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      <div className="max-w-xs truncate">
+                        {ecr.title}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span 
+                        className="px-2 py-1 text-xs font-medium rounded-full"
+                        style={getUrgencyStyle(ecr.urgency)}
+                      >
+                        {ecr.urgency}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecr.status)}`}>
+                        {getStatusLabel(ecr.status)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                      {ecr.submitter.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      {formatCurrency(ecr.costImpact)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                      {formatDate(ecr.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+
+          {sortedECRs.length === 0 && (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No ECRs found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {filters.search || filters.status || filters.priority
+                  ? 'Try adjusting your search or filter criteria.'
+                  : 'Get started by creating your first Engineering Change Request.'}
+              </p>
+              {!filters.search && !filters.status && !filters.priority && (
+                <div className="mt-6">
+                  <Link
+                    href="/dashboard/ecr/new"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    New ECR
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Bundle ECRs Modal */}
       {showBundleModal && (

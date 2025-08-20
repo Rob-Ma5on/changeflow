@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import ViewToggle, { ViewMode } from '@/components/view-toggle';
+import FilterBar, { FilterState } from '@/components/filter-bar';
+import EntityCard from '@/components/entity-card';
+import ColumnHeader, { SortDirection } from '@/components/column-header';
 
 interface ECN {
   id: string;
@@ -207,16 +211,25 @@ export default function ECNPage() {
   const { data: session } = useSession();
   const [ecns, setEcns] = useState<ECN[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    status: '',
+    priority: '',
+    category: '',
+    assignee: '',
+    dateRange: { start: '', end: '' }
+  });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ key: '', direction: null });
   const [selectedECN, setSelectedECN] = useState<ECN | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const fetchECNs = async () => {
       try {
-        const url = statusFilter === 'all' 
-          ? '/api/ecn' 
-          : `/api/ecn?status=${statusFilter}`;
+        const url = filters.status 
+          ? `/api/ecn?status=${filters.status}`
+          : '/api/ecn';
         
         const response = await fetch(url);
         if (response.ok) {
@@ -233,7 +246,38 @@ export default function ECNPage() {
     };
 
     fetchECNs();
-  }, [statusFilter]);
+  }, [filters.status]);
+
+  const filteredEcns = ecns.filter((ecn) => {
+    const matchesSearch = !filters.search ||
+      ecn.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+      ecn.ecnNumber.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesStatus = !filters.status || ecn.status === filters.status;
+    const matchesAssignee = !filters.assignee || ecn.assignee?.id === filters.assignee;
+    
+    return matchesSearch && matchesStatus && matchesAssignee;
+  });
+
+  const handleSort = (key: string) => {
+    let direction: SortDirection = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = null;
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedEcns = [...filteredEcns].sort((a, b) => {
+    if (!sortConfig.direction) return 0;
+    
+    const aValue = a[sortConfig.key as keyof ECN];
+    const bValue = b[sortConfig.key as keyof ECN];
+    
+    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -252,6 +296,29 @@ export default function ECNPage() {
     setIsModalOpen(true);
   };
 
+  const statusOptions = [
+    { value: 'DRAFT', label: 'Draft' },
+    { value: 'PENDING_APPROVAL', label: 'Pending Approval' },
+    { value: 'APPROVED', label: 'Approved' },
+    { value: 'DISTRIBUTED', label: 'Distributed' },
+    { value: 'EFFECTIVE', label: 'Effective' },
+    { value: 'CANCELLED', label: 'Cancelled' }
+  ];
+
+  const assigneeOptions = ecns.reduce((acc, ecn) => {
+    if (ecn.assignee && !acc.find(a => a.value === ecn.assignee!.id)) {
+      acc.push({ value: ecn.assignee.id, label: ecn.assignee.name });
+    }
+    return acc;
+  }, [] as { value: string; label: string }[]);
+
+  const kanbanColumns = [
+    { id: 'DRAFT', title: 'Draft', status: ['DRAFT'] },
+    { id: 'PENDING_APPROVAL', title: 'Pending Approval', status: ['PENDING_APPROVAL'] },
+    { id: 'APPROVED', title: 'Approved', status: ['APPROVED'] },
+    { id: 'DISTRIBUTED', title: 'Distributed/Effective', status: ['DISTRIBUTED', 'EFFECTIVE'] }
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -263,132 +330,184 @@ export default function ECNPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Engineering Change Notices</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Engineering Change Notices</h1>
           <p className="text-gray-600 mt-2">Formal notifications of implemented changes</p>
+        </div>
+        <div className="flex items-center">
+          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex space-x-4">
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-              Status Filter
-            </label>
-            <select
-              id="status"
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="PENDING_APPROVAL">Pending Approval</option>
-              <option value="APPROVED">Approved</option>
-              <option value="DISTRIBUTED">Distributed</option>
-              <option value="EFFECTIVE">Effective</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <FilterBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        statusOptions={statusOptions}
+        assigneeOptions={assigneeOptions}
+        showAssignee={true}
+      />
 
-      {/* ECN Table */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-        {ecns.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ECN Number
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Linked ECO
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Original ECR
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {ecns.map((ecn) => (
-                  <tr 
-                    key={ecn.id} 
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleECNClick(ecn)}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <span className="text-purple-600 hover:text-purple-800">
-                        {ecn.ecnNumber}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      <div className="max-w-xs truncate">
-                        {ecn.title}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {ecn.eco ? (
-                        <span className="text-blue-600">
-                          {ecn.eco.ecoNumber}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">No ECO</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {ecn.eco?.ecr ? (
-                        <div>
-                          <span className="text-gray-600">{ecn.eco.ecr.ecrNumber}</span>
-                          <div className="text-xs text-gray-400">
-                            by {ecn.eco.ecr.submitter.name}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">No ECR</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecn.status)}`}>
-                        {ecn.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(ecn.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                    </td>
+      {/* Main Content */}
+      {viewMode === 'kanban' ? (
+        // Kanban View
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {kanbanColumns.map((column) => {
+            const columnEcns = sortedEcns.filter(ecn => column.status.includes(ecn.status));
+            return (
+              <div key={column.id} className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900">{column.title}</h3>
+                  <span className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
+                    {columnEcns.length}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {columnEcns.map((ecn) => (
+                    <EntityCard
+                      key={ecn.id}
+                      entityType="ECN"
+                      number={ecn.ecnNumber}
+                      title={ecn.title}
+                      priority="MEDIUM" // ECNs don't have priority, use default
+                      status={ecn.status}
+                      assignee={ecn.assignee ? {
+                        name: ecn.assignee.name,
+                        email: ecn.assignee.email
+                      } : undefined}
+                      requestor={{
+                        name: ecn.submitter.name,
+                        email: ecn.submitter.email
+                      }}
+                      createdDate={ecn.createdAt}
+                      dueDate={ecn.effectiveDate}
+                      onClick={() => handleECNClick(ecn)}
+                    />
+                  ))}
+                  {columnEcns.length === 0 && (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      No ECNs in {column.title.toLowerCase()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        // List View
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+          {sortedEcns.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <ColumnHeader
+                      title="ECN Number"
+                      sortKey="ecnNumber"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                    />
+                    <ColumnHeader
+                      title="Title"
+                      sortKey="title"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                    />
+                    <ColumnHeader
+                      title="Linked ECO"
+                      sortKey="eco"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                    />
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Original ECR
+                    </th>
+                    <ColumnHeader
+                      title="Status"
+                      sortKey="status"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                    />
+                    <ColumnHeader
+                      title="Created"
+                      sortKey="createdAt"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                    />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No ECNs found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              No Engineering Change Notices have been created yet.
-            </p>
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedEcns.map((ecn) => (
+                    <tr 
+                      key={ecn.id} 
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleECNClick(ecn)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <span className="text-purple-600 hover:text-purple-800">
+                          {ecn.ecnNumber}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div className="max-w-xs truncate">
+                          {ecn.title}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {ecn.eco ? (
+                          <span className="text-blue-600">
+                            {ecn.eco.ecoNumber}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">No ECO</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {ecn.eco?.ecr ? (
+                          <div>
+                            <span className="text-gray-600">{ecn.eco.ecr.ecrNumber}</span>
+                            <div className="text-xs text-gray-400">
+                              by {ecn.eco.ecr.submitter.name}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">No ECR</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecn.status)}`}>
+                          {ecn.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(ecn.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No ECNs found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {filters.search || filters.status
+                  ? 'Try adjusting your search or filter criteria.'
+                  : 'No Engineering Change Notices have been created yet.'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Summary Stats */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -396,25 +515,25 @@ export default function ECNPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900">
-              {ecns.filter(ecn => ecn.status === 'PENDING_APPROVAL').length}
+              {filteredEcns.filter(ecn => ecn.status === 'PENDING_APPROVAL').length}
             </div>
             <div className="text-sm text-gray-500">Pending Approval</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900">
-              {ecns.filter(ecn => ecn.status === 'APPROVED').length}
+              {filteredEcns.filter(ecn => ecn.status === 'APPROVED').length}
             </div>
             <div className="text-sm text-gray-500">Approved</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900">
-              {ecns.filter(ecn => ecn.status === 'DISTRIBUTED').length}
+              {filteredEcns.filter(ecn => ecn.status === 'DISTRIBUTED').length}
             </div>
             <div className="text-sm text-gray-500">Distributed</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900">
-              {ecns.filter(ecn => ecn.status === 'EFFECTIVE').length}
+              {filteredEcns.filter(ecn => ecn.status === 'EFFECTIVE').length}
             </div>
             <div className="text-sm text-gray-500">Effective</div>
           </div>
