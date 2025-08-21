@@ -46,7 +46,7 @@ export async function GET(
             targetDate: true,
             submitter: { select: { name: true, email: true } },
             assignee: { select: { name: true, email: true } },
-            ecr: {
+            ecrs: {
               select: {
                 id: true,
                 ecrNumber: true,
@@ -148,7 +148,7 @@ export async function PATCH(
             id: true,
             ecoNumber: true,
             title: true,
-            ecr: { select: { id: true, ecrNumber: true, title: true } }
+            ecrs: { select: { id: true, ecrNumber: true, title: true } }
           }
         }
       },

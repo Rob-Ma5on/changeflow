@@ -36,7 +36,7 @@ interface ECNDetail {
     targetDate?: string;
     submitter: { name: string; email: string };
     assignee?: { name: string; email: string };
-    ecr?: {
+    ecrs: {
       id: string;
       ecrNumber: string;
       title: string;
@@ -53,7 +53,7 @@ interface ECNDetail {
       approver?: { name: string; email: string };
       submittedAt?: string;
       approvedAt?: string;
-    };
+    }[];
   };
 }
 
@@ -218,40 +218,68 @@ export default function ECNDetailPage() {
 
       {/* Traceability Chain */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-blue-900 mb-4">Complete Traceability Chain</h3>
-        <div className="flex items-center space-x-3 text-sm">
-          {ecn.eco?.ecr && (
-            <>
-              <div className="flex-1 bg-white p-3 rounded border border-blue-200">
-                <div className="font-medium text-gray-900">{ecn.eco.ecr.ecrNumber}</div>
-                <div className="text-gray-600 text-xs">{ecn.eco.ecr.title}</div>
-                <div className="text-gray-500 text-xs">Request by {ecn.eco.ecr.submitter.name}</div>
-              </div>
-              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </>
-          )}
+        <h3 className="text-lg font-medium text-blue-900 mb-4">Traceability Chain</h3>
+        
+        {/* ECRs Section */}
+        {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-md font-medium text-blue-800 mb-3">
+              Original ECRs ({ecn.eco.ecrs.length})
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {ecn.eco.ecrs.map((ecr) => (
+                <div key={ecr.id} className="bg-white p-3 rounded border border-blue-200">
+                  <div className="font-medium text-gray-900">{ecr.ecrNumber}</div>
+                  <div className="text-gray-600 text-xs truncate">{ecr.title}</div>
+                  <div className="text-gray-500 text-xs">Request by {ecr.submitter.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Flow Visualization */}
+        <div className="flex items-center justify-center space-x-4 text-sm">
+          <div className="text-center">
+            <div className="bg-gray-100 p-2 rounded-lg">
+              <span className="text-xs font-medium text-gray-600">
+                {ecn.eco?.ecrs?.length || 0} ECR{(ecn.eco?.ecrs?.length || 0) !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 mt-1">Original Requests</div>
+          </div>
+          
+          <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          
           {ecn.eco && (
             <>
-              <div className="flex-1 bg-white p-3 rounded border border-blue-200">
-                <div className="font-medium text-blue-700">{ecn.eco.ecoNumber}</div>
-                <div className="text-gray-600 text-xs">{ecn.eco.title}</div>
-                <div className="text-gray-500 text-xs">Implementation Order</div>
+              <div className="text-center">
+                <div className="bg-white p-2 rounded-lg border border-blue-200">
+                  <div className="font-medium text-blue-700 text-xs">{ecn.eco.ecoNumber}</div>
+                  <div className="text-gray-600 text-xs truncate max-w-20">{ecn.eco.title}</div>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Implementation Order</div>
               </div>
-              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              
+              <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </>
           )}
-          <div className="flex-1 bg-purple-50 p-3 rounded border border-purple-200">
-            <div className="font-medium text-purple-700">{ecn.ecnNumber}</div>
-            <div className="text-gray-600 text-xs">{ecn.title}</div>
-            <div className="text-gray-500 text-xs">Change Notice</div>
+          
+          <div className="text-center">
+            <div className="bg-purple-50 p-2 rounded-lg border border-purple-200">
+              <div className="font-medium text-purple-700 text-xs">{ecn.ecnNumber}</div>
+              <div className="text-gray-600 text-xs truncate max-w-20">{ecn.title}</div>
+            </div>
+            <div className="text-xs text-gray-500 mt-1">Change Notice</div>
           </div>
         </div>
-        <p className="text-blue-700 text-sm mt-3">
-          This ECN formally notifies all stakeholders of changes implemented through the linked ECO and original ECR.
+        
+        <p className="text-blue-700 text-sm mt-4">
+          This ECN notifies of changes implemented through the linked ECO{ecn.eco?.ecrs && ecn.eco.ecrs.length > 1 ? ` and ${ecn.eco.ecrs.length} original ECRs` : ' and original ECR'}.
         </p>
       </div>
 
@@ -346,99 +374,148 @@ export default function ECNDetailPage() {
           </div>
         </div>
 
-        {/* Original ECR Details */}
-        {ecn.eco?.ecr && (
+        {/* Original ECRs Details */}
+        {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Original ECR Details</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">ECR Number</label>
-                <p className="mt-1 text-blue-600 font-medium">{ecn.eco.ecr.ecrNumber}</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Original ECR Details ({ecn.eco.ecrs.length})
+            </h3>
+            
+            {ecn.eco.ecrs.length === 1 ? (
+              // Single ECR - show full details
+              <div className="space-y-4">
+                {(() => {
+                  const ecr = ecn.eco.ecrs[0];
+                  return (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">ECR Number</label>
+                        <p className="mt-1 text-blue-600 font-medium">{ecr.ecrNumber}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Title</label>
+                        <p className="mt-1 text-gray-900">{ecr.title}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Description</label>
+                        <p className="mt-1 text-gray-900">{ecr.description}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Reason for Change</label>
+                        <p className="mt-1 text-gray-900">{ecr.reason}</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Urgency</label>
+                          <span className={`inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full ${
+                            ecr.urgency === 'LOW' ? 'bg-green-100 text-green-800' :
+                            ecr.urgency === 'MEDIUM' ? 'bg-amber-100 text-amber-800' :
+                            ecr.urgency === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {ecr.urgency}
+                          </span>
+                        </div>
+                        {ecr.costImpact && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Cost Impact</label>
+                            <p className="mt-1 text-gray-900">
+                              ${ecr.costImpact.toLocaleString()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {ecr.affectedProducts && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Affected Products</label>
+                          <p className="mt-1 text-gray-900">{ecr.affectedProducts}</p>
+                        </div>
+                      )}
+
+                      {ecr.affectedDocuments && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Affected Documents</label>
+                          <p className="mt-1 text-gray-900">{ecr.affectedDocuments}</p>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Submitted By</label>
+                          <p className="mt-1 text-gray-900">{ecr.submitter.name}</p>
+                        </div>
+                        {ecr.approver && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Approved By</label>
+                            <p className="mt-1 text-gray-900">{ecr.approver.name}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {ecr.submittedAt && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">Submitted Date</label>
+                            <p className="mt-1 text-gray-900">
+                              {new Date(ecr.submittedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          {ecr.approvedAt && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Approved Date</label>
+                              <p className="mt-1 text-gray-900">
+                                {new Date(ecr.approvedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()
+                }
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
-                <p className="mt-1 text-gray-900">{ecn.eco.ecr.title}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <p className="mt-1 text-gray-900">{ecn.eco.ecr.description}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Reason for Change</label>
-                <p className="mt-1 text-gray-900">{ecn.eco.ecr.reason}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Urgency</label>
-                  <span className={`inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full ${
-                    ecn.eco.ecr.urgency === 'LOW' ? 'bg-green-100 text-green-800' :
-                    ecn.eco.ecr.urgency === 'MEDIUM' ? 'bg-amber-100 text-amber-800' :
-                    ecn.eco.ecr.urgency === 'HIGH' ? 'bg-orange-100 text-orange-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {ecn.eco.ecr.urgency}
-                  </span>
-                </div>
-                {ecn.eco.ecr.costImpact && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Cost Impact</label>
-                    <p className="mt-1 text-gray-900">
-                      ${ecn.eco.ecr.costImpact.toLocaleString()}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {ecn.eco.ecr.affectedProducts && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Affected Products</label>
-                  <p className="mt-1 text-gray-900">{ecn.eco.ecr.affectedProducts}</p>
-                </div>
-              )}
-
-              {ecn.eco.ecr.affectedDocuments && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Affected Documents</label>
-                  <p className="mt-1 text-gray-900">{ecn.eco.ecr.affectedDocuments}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Submitted By</label>
-                  <p className="mt-1 text-gray-900">{ecn.eco.ecr.submitter.name}</p>
-                </div>
-                {ecn.eco.ecr.approver && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Approved By</label>
-                    <p className="mt-1 text-gray-900">{ecn.eco.ecr.approver.name}</p>
-                  </div>
-                )}
-              </div>
-
-              {ecn.eco.ecr.submittedAt && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Submitted Date</label>
-                    <p className="mt-1 text-gray-900">
-                      {new Date(ecn.eco.ecr.submittedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {ecn.eco.ecr.approvedAt && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Approved Date</label>
-                      <p className="mt-1 text-gray-900">
-                        {new Date(ecn.eco.ecr.approvedAt).toLocaleDateString()}
-                      </p>
+            ) : (
+              // Multiple ECRs - show summary cards
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  This ECN was created from {ecn.eco.ecrs.length} bundled ECRs. Click on any ECR number to view full details.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ecn.eco.ecrs.map((ecr) => (
+                    <div key={ecr.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium text-blue-600">{ecr.ecrNumber}</h4>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          ecr.urgency === 'LOW' ? 'bg-green-100 text-green-800' :
+                          ecr.urgency === 'MEDIUM' ? 'bg-amber-100 text-amber-800' :
+                          ecr.urgency === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {ecr.urgency}
+                        </span>
+                      </div>
+                      <h5 className="font-medium text-gray-900 mb-2">{ecr.title}</h5>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ecr.description}</p>
+                      <div className="text-xs text-gray-500">
+                        <div>Submitted by: {ecr.submitter.name}</div>
+                        {ecr.costImpact && (
+                          <div>Cost Impact: ${ecr.costImpact.toLocaleString()}</div>
+                        )}
+                        {ecr.approvedAt && (
+                          <div>Approved: {new Date(ecr.approvedAt).toLocaleDateString()}</div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>

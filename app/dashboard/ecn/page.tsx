@@ -26,12 +26,12 @@ interface ECN {
     title: string;
     status: string;
     completedAt?: string;
-    ecr?: {
+    ecrs: {
       id: string;
       ecrNumber: string;
       title: string;
       submitter: { name: string };
-    };
+    }[];
   };
 }
 

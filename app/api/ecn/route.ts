@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
             title: true,
             status: true,
             completedAt: true,
-            ecr: {
+            ecrs: {
               select: {
                 id: true,
                 ecrNumber: true,
