@@ -8,6 +8,11 @@ import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import EntityCard from '@/components/entity-card';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
+import SkeletonCard from '@/components/skeleton-card';
+import SkeletonTable from '@/components/skeleton-table';
+import EmptyState, { ECREmptyState, FilterEmptyState } from '@/components/empty-state';
+import LoadingSpinner from '@/components/loading-spinner';
+import { exportToExcel, formatECRsForExport } from '@/components/export-utils';
 
 interface ECR {
   id: string;
@@ -48,6 +53,7 @@ export default function ECRPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [showToast, setShowToast] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const fetchECRs = async () => {
@@ -68,6 +74,36 @@ export default function ECRPage() {
 
     fetchECRs();
   }, []);
+
+  const handleExport = async () => {
+    if (sortedECRs.length === 0) {
+      setToastMessage('No data to export');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const exportData = formatECRsForExport(sortedECRs);
+      const success = exportToExcel(exportData, 'ECRs', 'Engineering_Change_Requests');
+      
+      if (success) {
+        setToastMessage(`Successfully exported ${sortedECRs.length} ECRs to Excel`);
+        setToastType('success');
+      } else {
+        setToastMessage('Failed to export data');
+        setToastType('error');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      setToastMessage('Failed to export data');
+      setToastType('error');
+    } finally {
+      setIsExporting(false);
+      setShowToast(true);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -261,8 +297,45 @@ export default function ECRPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="h-8 bg-gray-200 rounded w-80 animate-pulse mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-60 animate-pulse"></div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-24 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Filter Bar Skeleton */}
+        <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="h-10 bg-gray-200 rounded flex-1 min-w-64 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-28 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-36 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Content Skeleton - Kanban by default */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-5 bg-gray-200 rounded w-24 animate-pulse"></div>
+                <div className="h-6 w-6 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }, (_, j) => (
+                  <SkeletonCard key={j} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -276,7 +349,6 @@ export default function ECRPage() {
           <p className="text-gray-600 mt-2">Manage and track all change requests</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           <div className="flex flex-col sm:flex-row gap-2">
             {selectedApprovedECRs.length >= 2 && (
               <button
@@ -300,6 +372,7 @@ export default function ECRPage() {
               New ECR
             </Link>
           </div>
+          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         </div>
       </div>
 
@@ -308,10 +381,27 @@ export default function ECRPage() {
         filters={filters}
         onFiltersChange={setFilters}
         statusOptions={statusOptions}
+        onExport={handleExport}
+        exportDisabled={sortedECRs.length === 0}
+        isExporting={isExporting}
       />
 
       {/* Main Content */}
-      {viewMode === 'kanban' ? (
+      {sortedECRs.length === 0 ? (
+        // Empty State
+        ecrs.length === 0 ? (
+          <ECREmptyState />
+        ) : (
+          <FilterEmptyState onClearFilters={() => setFilters({
+            search: '',
+            status: '',
+            priority: '',
+            category: '',
+            assignee: '',
+            dateRange: { start: '', end: '' }
+          })} />
+        )
+      ) : viewMode === 'kanban' ? (
         // Kanban View
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {kanbanColumns.map((column) => {
@@ -481,33 +571,6 @@ export default function ECRPage() {
               </tbody>
             </table>
           </div>
-
-          {sortedECRs.length === 0 && (
-            <div className="text-center py-12">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No ECRs found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {filters.search || filters.status || filters.priority
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'Get started by creating your first Engineering Change Request.'}
-              </p>
-              {!filters.search && !filters.status && !filters.priority && (
-                <div className="mt-6">
-                  <Link
-                    href="/dashboard/ecr/new"
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    New ECR
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 

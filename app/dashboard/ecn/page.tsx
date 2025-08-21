@@ -7,6 +7,7 @@ import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import EntityCard from '@/components/entity-card';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
+import { exportToExcel, formatECNsForExport } from '@/components/export-utils';
 
 interface ECN {
   id: string;
@@ -223,6 +224,7 @@ export default function ECNPage() {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ key: '', direction: null });
   const [selectedECN, setSelectedECN] = useState<ECN | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const fetchECNs = async () => {
@@ -247,6 +249,30 @@ export default function ECNPage() {
 
     fetchECNs();
   }, [filters.status]);
+
+  const handleExport = async () => {
+    if (sortedEcns.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const exportData = formatECNsForExport(sortedEcns);
+      const success = exportToExcel(exportData, 'ECNs', 'Engineering_Change_Notices');
+      
+      if (success) {
+        alert(`Successfully exported ${sortedEcns.length} ECNs to Excel`);
+      } else {
+        alert('Failed to export data');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const filteredEcns = ecns.filter((ecn) => {
     const matchesSearch = !filters.search ||
@@ -335,7 +361,7 @@ export default function ECNPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Engineering Change Notices</h1>
           <p className="text-gray-600 mt-2">Formal notifications of implemented changes</p>
         </div>
-        <div className="flex items-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         </div>
       </div>
@@ -347,6 +373,9 @@ export default function ECNPage() {
         statusOptions={statusOptions}
         assigneeOptions={assigneeOptions}
         showAssignee={true}
+        onExport={handleExport}
+        exportDisabled={sortedEcns.length === 0}
+        isExporting={isExporting}
       />
 
       {/* Main Content */}
@@ -494,17 +523,18 @@ export default function ECNPage() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-12">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No ECNs found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {filters.search || filters.status
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'No Engineering Change Notices have been created yet.'}
-              </p>
-            </div>
+            ecns.length === 0 ? (
+              <ECNEmptyState />
+            ) : (
+              <FilterEmptyState onClearFilters={() => setFilters({
+                search: '',
+                status: '',
+                priority: '',
+                category: '',
+                assignee: '',
+                dateRange: { start: '', end: '' }
+              })} />
+            )
           )}
         </div>
       )}

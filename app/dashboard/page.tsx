@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import LoadingSpinner from '@/components/loading-spinner';
 
 interface DashboardStats {
   totalEcrs: number;
@@ -118,8 +119,72 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#0066CC' }}></div>
+      <div className="space-y-8">
+        {/* Welcome Header Skeleton */}
+        <div>
+          <div className="h-10 bg-gray-200 rounded w-72 animate-pulse"></div>
+          <div className="h-5 bg-gray-200 rounded w-80 mt-2 animate-pulse"></div>
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {[1, 2, 3, 4].map((card) => (
+            <div key={card} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                </div>
+                <div className="ml-4 flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-20 mb-2 animate-pulse"></div>
+                  <div className="h-6 bg-gray-200 rounded w-12 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Actions Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="h-6 bg-gray-200 rounded w-32 mb-4 animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((action) => (
+              <div key={action} className="flex items-center p-4 border border-gray-200 rounded-lg">
+                <div className="w-10 h-10 bg-gray-200 rounded-lg mr-4 animate-pulse"></div>
+                <div>
+                  <div className="h-4 bg-gray-200 rounded w-20 mb-1 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Activity Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+          </div>
+          <div className="p-6">
+            <div className="space-y-6">
+              {[1, 2, 3, 4, 5].map((activity) => (
+                <div key={activity} className="flex items-start space-x-3">
+                  <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
+                    <div className="h-4 bg-gray-200 rounded w-48 mb-2 animate-pulse"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-5 bg-gray-200 rounded-full w-16 animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

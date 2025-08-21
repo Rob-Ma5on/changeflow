@@ -8,6 +8,7 @@ import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import EntityCard from '@/components/entity-card';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
+import { exportToExcel, formatECOsForExport } from '@/components/export-utils';
 
 interface ECO {
   id: string;
@@ -392,6 +393,7 @@ export default function ECOPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [showToast, setShowToast] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
 
   const columns: Column[] = [
@@ -420,6 +422,36 @@ export default function ECOPage() {
 
     fetchECOs();
   }, []);
+
+  const handleExport = async () => {
+    if (sortedEcos.length === 0) {
+      setToastMessage('No data to export');
+      setToastType('error');
+      setShowToast(true);
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const exportData = formatECOsForExport(sortedEcos);
+      const success = exportToExcel(exportData, 'ECOs', 'Engineering_Change_Orders');
+      
+      if (success) {
+        setToastMessage(`Successfully exported ${sortedEcos.length} ECOs to Excel`);
+        setToastType('success');
+      } else {
+        setToastMessage('Failed to export data');
+        setToastType('error');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      setToastMessage('Failed to export data');
+      setToastType('error');
+    } finally {
+      setIsExporting(false);
+      setShowToast(true);
+    }
+  };
 
   // Map ECO status to Kanban column status
   const mapStatusToColumn = (ecoStatus: ECO['status']): 'BACKLOG' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED' => {
@@ -560,7 +592,6 @@ export default function ECOPage() {
           <p className="text-gray-600 mt-2">Track implementation progress</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           <div className="flex flex-col sm:flex-row gap-2">
             <Link
               href="/dashboard/ecr/convert"
@@ -579,6 +610,7 @@ export default function ECOPage() {
               New ECO
             </button>
           </div>
+          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         </div>
       </div>
 
@@ -589,6 +621,9 @@ export default function ECOPage() {
         statusOptions={statusOptions}
         assigneeOptions={assigneeOptions}
         showAssignee={true}
+        onExport={handleExport}
+        exportDisabled={sortedEcos.length === 0}
+        isExporting={isExporting}
       />
 
       {/* Main Content */}
@@ -742,17 +777,18 @@ export default function ECOPage() {
           </div>
 
           {sortedEcos.length === 0 && (
-            <div className="text-center py-12">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No ECOs found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {filters.search || filters.status || filters.priority
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'Get started by converting ECRs to ECOs.'}
-              </p>
-            </div>
+            ecos.length === 0 ? (
+              <ECOEmptyState />
+            ) : (
+              <FilterEmptyState onClearFilters={() => setFilters({
+                search: '',
+                status: '',
+                priority: '',
+                category: '',
+                assignee: '',
+                dateRange: { start: '', end: '' }
+              })} />
+            )
           )}
         </div>
       )}
