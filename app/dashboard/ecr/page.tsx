@@ -604,8 +604,8 @@ export default function ECRPage() {
                     {selectedApprovedECRs.map(ecrId => {
                       const ecr = ecrs.find(e => e.id === ecrId);
                       return ecr ? (
-                        <div key={ecrId} className="text-sm text-gray-700 py-1">
-                          <span className="font-medium">{ecr.ecrNumber}</span> - {ecr.title}
+                        <div key={ecrId} className="text-sm text-gray-900 py-1">
+                          <span className="font-semibold">{ecr.ecrNumber}</span> - {ecr.title}
                         </div>
                       ) : null;
                     })}

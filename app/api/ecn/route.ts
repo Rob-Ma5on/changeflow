@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
             id: true, 
             ecoNumber: true, 
             title: true,
-            ecr: { select: { id: true, ecrNumber: true, title: true } }
+            ecrs: { select: { id: true, ecrNumber: true, title: true } }
           } 
         },
       },

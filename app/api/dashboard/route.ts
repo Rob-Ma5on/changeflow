@@ -20,21 +20,21 @@ export async function GET(request: NextRequest) {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
     // Fetch ECR stats
-    const totalEcrs = await prisma.ecr.count({
+    const totalEcrs = await prisma.eCR.count({
       where: { organizationId }
     });
 
-    const openEcrs = await prisma.ecr.count({
+    const openEcrs = await prisma.eCR.count({
       where: {
         organizationId,
         status: {
-          in: ['DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'PENDING_APPROVAL']
+          in: ['DRAFT', 'SUBMITTED', 'UNDER_REVIEW']
         }
       }
     });
 
     // Fetch ECO stats
-    const ecosInProgress = await prisma.eco.count({
+    const ecosInProgress = await prisma.eCO.count({
       where: {
         organizationId,
         status: 'IN_PROGRESS'
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Fetch ECN stats
-    const pendingEcns = await prisma.ecn.count({
+    const pendingEcns = await prisma.eCN.count({
       where: {
         organizationId,
         status: {

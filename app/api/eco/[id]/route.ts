@@ -59,7 +59,7 @@ export async function PATCH(
           assignee: { select: { id: true, name: true, email: true } },
           approver: { select: { id: true, name: true, email: true } },
           organization: { select: { id: true, name: true } },
-          ecr: { select: { id: true, ecrNumber: true, title: true } },
+          ecrs: { select: { id: true, ecrNumber: true, title: true } },
         },
       });
 
@@ -107,7 +107,7 @@ export async function GET(
         assignee: { select: { id: true, name: true, email: true } },
         approver: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
-        ecr: { 
+        ecrs: { 
           select: { 
             id: true, 
             ecrNumber: true, 

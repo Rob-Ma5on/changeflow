@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       include: {
         submitter: { select: { id: true, name: true } },
         assignee: { select: { id: true, name: true } },
-        ecr: {
+        ecrs: {
           select: {
             id: true,
             ecrNumber: true,
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
             description: true,
             status: true,
             completedAt: true,
-            ecr: {
+            ecrs: {
               select: {
                 id: true,
                 ecrNumber: true,

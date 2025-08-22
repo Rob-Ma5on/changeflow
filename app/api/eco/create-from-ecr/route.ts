@@ -46,17 +46,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if ECO already exists for this ECR
-    const existingEco = await prisma.eCO.findFirst({
+    // Check if ECR is already linked to an ECO
+    const ecrWithEco = await prisma.eCR.findFirst({
       where: {
-        ecrId,
-        organizationId
+        id: ecrId,
+        organizationId,
+        ecoId: { not: null }
+      },
+      include: {
+        eco: { select: { id: true, ecoNumber: true } }
       }
     });
 
-    if (existingEco) {
+    if (ecrWithEco && ecrWithEco.eco) {
       return NextResponse.json(
-        { error: 'ECO already exists for this ECR', ecoNumber: existingEco.ecoNumber },
+        { error: 'ECO already exists for this ECR', ecoNumber: ecrWithEco.eco.ecoNumber },
         { status: 409 }
       );
     }
@@ -87,7 +91,6 @@ export async function POST(request: NextRequest) {
           ecoNumber,
           title: `Implement: ${ecr.title}`,
           description: `Implementation of approved ECR: ${ecr.description}`,
-          ecrId: ecr.id,
           organizationId,
           submitterId,
           assigneeId: ecr.assigneeId || ecr.submitterId, // Assign to ECR assignee or submitter
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest) {
           submitter: { select: { id: true, name: true, email: true } },
           assignee: { select: { id: true, name: true, email: true } },
           organization: { select: { id: true, name: true } },
-          ecr: { 
+          ecrs: { 
             select: { 
               id: true, 
               ecrNumber: true, 
@@ -121,10 +124,13 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Update ECR status to CONVERTED
+      // Update ECR status to CONVERTED and link to ECO
       await tx.eCR.update({
         where: { id: ecrId },
-        data: { status: 'CONVERTED' }
+        data: { 
+          status: 'CONVERTED',
+          ecoId: eco.id
+        }
       });
 
       return eco;

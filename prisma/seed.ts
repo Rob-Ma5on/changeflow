@@ -130,7 +130,6 @@ async function main() {
       ecoNumber: 'ECO-0001',
       title: 'Implement Material Specification Update for Component X',
       description: 'Formal change order to implement the approved material specification changes for Component X.',
-      ecrId: ecr2.id,
       organizationId: organization.id,
       submitterId: adminUser.id,
       assigneeId: engineer1.id,
@@ -148,6 +147,13 @@ async function main() {
     },
   });
   console.log('✓ Created sample ECO');
+
+  // Link the approved ECR to the ECO
+  await prisma.eCR.update({
+    where: { id: ecr2.id },
+    data: { ecoId: eco1.id },
+  });
+  console.log('✓ Linked ECR to ECO');
 
   // Create sample ECN for completed change
   const ecn1 = await prisma.eCN.upsert({

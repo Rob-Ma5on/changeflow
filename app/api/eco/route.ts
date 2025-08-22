@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         assignee: { select: { id: true, name: true, email: true } },
         approver: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
-        ecr: { select: { id: true, ecrNumber: true, title: true } },
+        ecrs: { select: { id: true, ecrNumber: true, title: true } },
       },
       orderBy: {
         createdAt: 'desc',
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
         submitter: { select: { id: true, name: true, email: true } },
         assignee: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
-        ecr: { select: { id: true, ecrNumber: true, title: true } },
+        ecrs: { select: { id: true, ecrNumber: true, title: true } },
       },
     });
 
