@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       where: {
         organizationId,
         status: {
-          in: ['DRAFT', 'PENDING_APPROVAL']
+          in: ['DRAFT', 'SUBMITTED']
         }
       }
     });
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     // Calculate completed changes this month
     const completedThisMonth = await prisma.$transaction(async (tx) => {
       const [completedEcrs, completedEcos, completedEcns] = await Promise.all([
-        tx.ecr.count({
+        tx.eCR.count({
           where: {
             organizationId,
             status: 'CONVERTED',
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
             }
           }
         }),
-        tx.eco.count({
+        tx.eCO.count({
           where: {
             organizationId,
             status: 'COMPLETED',
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
             }
           }
         }),
-        tx.ecn.count({
+        tx.eCN.count({
           where: {
             organizationId,
             status: 'EFFECTIVE',
