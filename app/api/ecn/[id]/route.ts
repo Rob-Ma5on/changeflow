@@ -30,40 +30,15 @@ export async function GET(
         assignee: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
         eco: {
-          select: {
-            id: true,
-            ecoNumber: true,
-            title: true,
-            description: true,
-            status: true,
-            priority: true,
-            completedAt: true,
-            implementationPlan: true,
-            testingPlan: true,
-            rollbackPlan: true,
-            resourcesRequired: true,
-            estimatedEffort: true,
-            targetDate: true,
+          include: {
             submitter: { select: { name: true, email: true } },
             assignee: { select: { name: true, email: true } },
             ecrs: {
-              select: {
-                id: true,
-                ecrNumber: true,
-                title: true,
-                description: true,
-                reason: true,
-                urgency: true,
-                affectedProducts: true,
-                affectedDocuments: true,
-                costImpact: true,
-                scheduleImpact: true,
-                implementationPlan: true,
+              include: {
                 submitter: { select: { name: true, email: true } },
                 assignee: { select: { name: true, email: true } },
                 approver: { select: { name: true, email: true } },
-                submittedAt: true,
-                approvedAt: true
+                organization: { select: { id: true, name: true } }
               }
             }
           }
@@ -144,11 +119,17 @@ export async function PATCH(
         assignee: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
         eco: {
-          select: {
-            id: true,
-            ecoNumber: true,
-            title: true,
-            ecrs: { select: { id: true, ecrNumber: true, title: true } }
+          include: {
+            submitter: { select: { name: true, email: true } },
+            assignee: { select: { name: true, email: true } },
+            ecrs: {
+              include: {
+                submitter: { select: { name: true, email: true } },
+                assignee: { select: { name: true, email: true } },
+                approver: { select: { name: true, email: true } },
+                organization: { select: { id: true, name: true } }
+              }
+            }
           }
         }
       },
