@@ -3,7 +3,7 @@
 import * as XLSX from 'xlsx';
 
 export interface ExportData {
-  [key: string]: any;
+  [key: string]: string | number | boolean | Date | null | undefined;
 }
 
 export const exportToExcel = (
@@ -44,8 +44,24 @@ export const exportToExcel = (
   }
 };
 
+interface ECRForExport {
+  ecrNumber?: string;
+  title?: string;
+  description?: string;
+  priority?: string;
+  status?: string;
+  category?: string;
+  impactAssessment?: string;
+  justification?: string;
+  submitter?: { name?: string; email?: string };
+  assignee?: { name?: string; email?: string };
+  targetDate?: string | Date;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
 // ECR-specific export format
-export const formatECRsForExport = (ecrs: any[]) => {
+export const formatECRsForExport = (ecrs: ECRForExport[]) => {
   return ecrs.map((ecr) => ({
     'ECR Number': ecr.ecrNumber || '',
     'Title': ecr.title || '',
@@ -65,8 +81,21 @@ export const formatECRsForExport = (ecrs: any[]) => {
   }));
 };
 
+interface ECOForExport {
+  ecoNumber?: string;
+  title?: string;
+  status?: string;
+  priority?: string;
+  ecr?: { ecrNumber?: string; title?: string };
+  ecrs?: Array<{ ecrNumber?: string }>;
+  assignee?: { name?: string; email?: string };
+  targetDate?: string | Date;
+  createdAt?: string | Date;
+  completedAt?: string | Date;
+}
+
 // ECO-specific export format
-export const formatECOsForExport = (ecos: any[]) => {
+export const formatECOsForExport = (ecos: ECOForExport[]) => {
   return ecos.map((eco) => ({
     'ECO Number': eco.ecoNumber || '',
     'Title': eco.title || '',
@@ -74,7 +103,7 @@ export const formatECOsForExport = (ecos: any[]) => {
     'Priority': eco.priority || '',
     'Linked ECR': eco.ecr?.ecrNumber || '',
     'ECR Title': eco.ecr?.title || '',
-    'Bundled ECRs': eco.ecrs?.map((ecr: any) => ecr.ecrNumber).join(', ') || '',
+    'Bundled ECRs': eco.ecrs?.map((ecr) => ecr.ecrNumber).join(', ') || '',
     'Assignee': eco.assignee?.name || '',
     'Assignee Email': eco.assignee?.email || '',
     'Target Date': eco.targetDate ? new Date(eco.targetDate).toLocaleDateString() : '',
@@ -83,8 +112,29 @@ export const formatECOsForExport = (ecos: any[]) => {
   }));
 };
 
+interface ECNForExport {
+  ecnNumber?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  eco?: {
+    ecoNumber?: string;
+    title?: string;
+    ecr?: {
+      ecrNumber?: string;
+      title?: string;
+      submitter?: { name?: string };
+    };
+  };
+  submitter?: { name?: string; email?: string };
+  assignee?: { name?: string; email?: string };
+  effectiveDate?: string | Date;
+  distributedAt?: string | Date;
+  createdAt?: string | Date;
+}
+
 // ECN-specific export format
-export const formatECNsForExport = (ecns: any[]) => {
+export const formatECNsForExport = (ecns: ECNForExport[]) => {
   return ecns.map((ecn) => ({
     'ECN Number': ecn.ecnNumber || '',
     'Title': ecn.title || '',

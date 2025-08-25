@@ -92,7 +92,7 @@ export default function ECNDetailPage() {
     
     setUpdating(true);
     try {
-      const updateData: any = { status: newStatus };
+      const updateData: { status: string; distributedAt?: string } = { status: newStatus };
       
       // Auto-set distributedAt if moving to DISTRIBUTED
       if (newStatus === 'DISTRIBUTED') {

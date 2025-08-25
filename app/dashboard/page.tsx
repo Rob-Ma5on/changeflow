@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import LoadingSpinner from '@/components/loading-spinner';
 
 interface DashboardStats {
   totalEcrs: number;
@@ -197,7 +196,7 @@ export default function DashboardPage() {
           Welcome back, {session?.user?.name || 'User'}!
         </h1>
         <p className="text-gray-600 mt-2">
-          Here's what's happening with your engineering changes
+          Here&apos;s what&apos;s happening with your engineering changes
         </p>
       </div>
 

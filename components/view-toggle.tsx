@@ -1,6 +1,5 @@
 'use client'
 
-import { Fragment } from 'react'
 
 export type ViewMode = 'kanban' | 'list'
 

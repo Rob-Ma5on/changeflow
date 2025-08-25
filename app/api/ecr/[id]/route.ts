@@ -94,7 +94,13 @@ export async function PATCH(
     }
 
     // Update the ECR status
-    const updateData: any = { 
+    const updateData: { 
+      status: string;
+      updatedAt: Date;
+      approverId?: string;
+      approvedAt?: Date;
+      rejectedAt?: Date;
+    } = { 
       status,
       updatedAt: new Date()
     };

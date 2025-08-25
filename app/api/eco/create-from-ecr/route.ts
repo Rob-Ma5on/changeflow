@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
           submitterId,
           assigneeId: ecr.assigneeId || ecr.submitterId, // Assign to ECR assignee or submitter
           status: 'DRAFT', // Start as draft (will map to BACKLOG in Kanban)
-          priority: ecr.urgency as any, // Map urgency to priority
+          priority: ecr.urgency as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', // Map urgency to priority
           implementationPlan: ecr.implementationPlan,
           // Set target date based on urgency
           targetDate: (() => {

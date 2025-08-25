@@ -18,7 +18,8 @@
       "Bash(git push:*)",
       "Bash(mv:*)",
       "Bash(PORT=3001 npm run dev)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

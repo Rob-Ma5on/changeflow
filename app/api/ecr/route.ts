@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const organizationId = session.user.organizationId;
 
-    const whereClause: any = {
+    const whereClause: { organizationId: string; status?: string } = {
       organizationId,
     };
 
@@ -172,17 +172,18 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(ecr, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating ECR:', error);
-    console.error('Error details:', error.message);
-    if (error.code === 'P2002') {
+    const err = error as { message?: string; code?: string };
+    console.error('Error details:', err.message);
+    if (err.code === 'P2002') {
       return NextResponse.json(
         { error: 'ECR number already exists' },
         { status: 400 }
       );
     }
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: err.message || 'Internal server error' },
       { status: 500 }
     );
   }

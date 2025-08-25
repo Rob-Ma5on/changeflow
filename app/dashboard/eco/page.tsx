@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Toast from '@/components/Toast';
 import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
-import EntityCard from '@/components/entity-card';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
 import { exportToExcel, formatECOsForExport } from '@/components/export-utils';
 
@@ -777,18 +776,31 @@ export default function ECOPage() {
           </div>
 
           {sortedEcos.length === 0 && (
-            ecos.length === 0 ? (
-              <ECOEmptyState />
-            ) : (
-              <FilterEmptyState onClearFilters={() => setFilters({
-                search: '',
-                status: '',
-                priority: '',
-                category: '',
-                assignee: '',
-                dateRange: { start: '', end: '' }
-              })} />
-            )
+            <div className="text-center py-8 text-gray-500">
+              {ecos.length === 0 ? (
+                <div>
+                  <h3 className="text-lg font-medium">No ECOs found</h3>
+                  <p className="mt-2">Convert approved ECRs to ECOs to start implementation.</p>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-medium">No ECOs match your filters</h3>
+                  <button 
+                    onClick={() => setFilters({
+                      search: '',
+                      status: '',
+                      priority: '',
+                      category: '',
+                      assignee: '',
+                      dateRange: { start: '', end: '' }
+                    })}
+                    className="mt-2 text-blue-600 hover:text-blue-800"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

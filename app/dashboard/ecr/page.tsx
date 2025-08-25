@@ -9,9 +9,7 @@ import FilterBar, { FilterState } from '@/components/filter-bar';
 import EntityCard from '@/components/entity-card';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
 import SkeletonCard from '@/components/skeleton-card';
-import SkeletonTable from '@/components/skeleton-table';
 import EmptyState, { ECREmptyState, FilterEmptyState } from '@/components/empty-state';
-import LoadingSpinner from '@/components/loading-spinner';
 import { exportToExcel, formatECRsForExport } from '@/components/export-utils';
 
 interface ECR {

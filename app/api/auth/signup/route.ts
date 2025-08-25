@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Return user data (excluding password)
-    const { password: _, ...userWithoutPassword } = result.user;
+    const { password: _password, ...userWithoutPassword } = result.user;
 
     return NextResponse.json({
       message: 'User and organization created successfully',

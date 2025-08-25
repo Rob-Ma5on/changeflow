@@ -5,9 +5,9 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
-import EntityCard from '@/components/entity-card';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
 import { exportToExcel, formatECNsForExport } from '@/components/export-utils';
+import EntityCard from '@/components/entity-card';
 
 interface ECN {
   id: string;
@@ -523,18 +523,31 @@ export default function ECNPage() {
               </table>
             </div>
           ) : (
-            ecns.length === 0 ? (
-              <ECNEmptyState />
-            ) : (
-              <FilterEmptyState onClearFilters={() => setFilters({
-                search: '',
-                status: '',
-                priority: '',
-                category: '',
-                assignee: '',
-                dateRange: { start: '', end: '' }
-              })} />
-            )
+            <div className="text-center py-8 text-gray-500">
+              {ecns.length === 0 ? (
+                <div>
+                  <h3 className="text-lg font-medium">No ECNs found</h3>
+                  <p className="mt-2">Create ECNs from completed ECOs to track change notices.</p>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-medium">No ECNs match your filters</h3>
+                  <button 
+                    onClick={() => setFilters({
+                      search: '',
+                      status: '',
+                      priority: '',
+                      category: '',
+                      assignee: '',
+                      dateRange: { start: '', end: '' }
+                    })}
+                    className="mt-2 text-blue-600 hover:text-blue-800"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

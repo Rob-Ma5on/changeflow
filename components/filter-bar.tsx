@@ -52,7 +52,7 @@ export default function FilterBar({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const updateFilter = (key: keyof FilterState, value: any) => {
+  const updateFilter = (key: keyof FilterState, value: FilterState[keyof FilterState]) => {
     onFiltersChange({ ...filters, [key]: value })
   }
 
