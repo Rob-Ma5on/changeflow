@@ -46,7 +46,7 @@ export async function GET() {
       where: {
         organizationId,
         status: {
-          in: ['DRAFT', 'SUBMITTED']
+          in: ['DRAFT', 'PENDING_APPROVAL']
         }
       }
     });
