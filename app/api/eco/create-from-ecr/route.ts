@@ -110,11 +110,11 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Update ECR status to CONVERTED and link to ECO
+      // Update ECR status to IMPLEMENTED and link to ECO
       await tx.eCR.update({
         where: { id: ecrId },
         data: { 
-          status: 'CONVERTED',
+          status: 'IMPLEMENTED',
           ecoId: eco.id
         }
       });

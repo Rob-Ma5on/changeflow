@@ -110,12 +110,12 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // Update all ECRs to link to the new ECO and set status to CONVERTED
+      // Update all ECRs to link to the new ECO and set status to IMPLEMENTED
       await tx.eCR.updateMany({
         where: { id: { in: ecrIds } },
         data: { 
           ecoId: eco.id,
-          status: 'CONVERTED'
+          status: 'IMPLEMENTED'
         }
       });
 
