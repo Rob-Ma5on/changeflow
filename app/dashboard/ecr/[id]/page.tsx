@@ -25,6 +25,20 @@ interface ECR {
   affectedProducts?: string;
   affectedDocuments?: string;
   implementationPlan?: string;
+  eco?: {
+    id: string;
+    ecoNumber: string;
+    title: string;
+    status: string;
+    createdAt: string;
+    completedAt?: string;
+    ecns: Array<{
+      id: string;
+      ecnNumber: string;
+      title: string;
+      status: string;
+    }>;
+  };
 }
 
 export default function ECRDetailPage() {
@@ -383,6 +397,161 @@ export default function ECRDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Traceability Chain */}
+      {ecr.eco && (
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">Traceability Chain</h3>
+            <p className="text-sm text-gray-600 mt-1">Track this ECR through the change management workflow</p>
+          </div>
+          
+          <div className="p-6">
+            {/* Current ECR */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center min-w-[200px]">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <span className="text-lg">📝</span>
+                  <span className="font-bold text-blue-600">{ecr.ecrNumber}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-2">{ecr.title}</p>
+                <div className="flex items-center justify-center space-x-2">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(ecr.status).className}`}>
+                    {getStatusBadge(ecr.status).label}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Arrow Down */}
+            <div className="flex justify-center mb-4">
+              <div className="text-gray-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Linked ECO */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-center min-w-[200px]">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <span className="text-lg">🔧</span>
+                  <Link
+                    href={`/dashboard/eco/${ecr.eco.id}`}
+                    className="font-bold text-yellow-600 hover:text-yellow-800"
+                  >
+                    {ecr.eco.ecoNumber}
+                  </Link>
+                </div>
+                <p className="text-sm text-gray-600 mb-2">{ecr.eco.title}</p>
+                <div className="flex items-center justify-center space-x-2">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    ecr.eco.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                    ecr.eco.status === 'IN_PROGRESS' ? 'bg-amber-100 text-amber-800' :
+                    ecr.eco.status === 'TESTING' ? 'bg-purple-100 text-purple-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {ecr.eco.status.replace('_', ' ')}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Created: {new Date(ecr.eco.createdAt).toLocaleDateString()}
+                </p>
+                {ecr.eco.completedAt && (
+                  <p className="text-xs text-gray-500">
+                    Completed: {new Date(ecr.eco.completedAt).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* ECNs if any */}
+            {ecr.eco.ecns.length > 0 && (
+              <>
+                {/* Arrow Down */}
+                <div className="flex justify-center mb-4">
+                  <div className="text-gray-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Generated ECNs */}
+                <div className="flex flex-wrap justify-center gap-4">
+                  {ecr.eco.ecns.map((ecn) => (
+                    <div key={ecn.id} className="bg-green-50 border border-green-200 rounded-lg p-4 text-center min-w-[180px]">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <span className="text-lg">📢</span>
+                        <Link
+                          href={`/dashboard/ecn/${ecn.id}`}
+                          className="font-bold text-green-600 hover:text-green-800"
+                        >
+                          {ecn.ecnNumber}
+                        </Link>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{ecn.title}</p>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        ecn.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                        ecn.status === 'DISTRIBUTED' ? 'bg-blue-100 text-blue-800' :
+                        ecn.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {ecn.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Quick Actions */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="flex justify-center space-x-4">
+                <Link
+                  href="/dashboard/traceability"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Full Traceability Search
+                </Link>
+                <Link
+                  href={`/dashboard/eco/${ecr.eco.id}`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  View ECO Details
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No ECO Message */}
+      {!ecr.eco && ecr.status === 'APPROVED' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="text-sm font-medium text-blue-800">Ready for ECO Conversion</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                This ECR is approved and ready to be bundled into an ECO for implementation.
+              </p>
+              <Link
+                href="/dashboard/ecr/convert"
+                className="mt-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+              >
+                Convert to ECO →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

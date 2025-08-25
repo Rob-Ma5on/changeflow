@@ -4,442 +4,346 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
-interface User {
+interface TraceabilityChain {
   id: string;
-  name: string;
-  email: string;
-}
-
-interface ECR {
-  id: string;
-  ecrNumber: string;
-  title: string;
-  description: string;
-  status: string;
-  urgency: string;
-  submitter: User;
-  assignee?: User;
-  approver?: User;
-  createdAt: string;
-  submittedAt?: string;
-  approvedAt?: string;
-  rejectedAt?: string;
-}
-
-interface ECO {
-  id: string;
-  ecoNumber: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  submitter: User;
-  assignee?: User;
-  approver?: User;
-  createdAt: string;
-  submittedAt?: string;
-  approvedAt?: string;
-  completedAt?: string;
-}
-
-interface ECN {
-  id: string;
-  ecnNumber: string;
-  title: string;
-  description: string;
-  status: string;
-  submitter: User;
-  assignee?: User;
-  createdAt: string;
-  distributedAt?: string;
-  effectiveDate?: string;
-}
-
-interface TimelineEvent {
-  type: string;
-  date: string;
-  title: string;
-  description: string;
-  user?: User;
-  status: string;
-  recordId: string;
-  recordType: 'ECR' | 'ECO' | 'ECN';
-  recordNumber: string;
-}
-
-interface TraceabilityData {
+  number: string;
   type: 'ECR' | 'ECO' | 'ECN';
-  ecn?: ECN;
-  eco?: ECO;
-  ecrs: ECR[];
-  timeline: TimelineEvent[];
+  title: string;
+  status: string;
+  createdAt: string;
+  submitter: { name: string };
+  linkedECRs?: Array<{
+    id: string;
+    ecrNumber: string;
+    title: string;
+    status: string;
+    submitter: { name: string };
+  }>;
+  parentECO?: {
+    id: string;
+    ecoNumber: string;
+    title: string;
+    status: string;
+  };
+  childECO?: {
+    id: string;
+    ecoNumber: string;
+    title: string;
+    status: string;
+  };
+  childECNs?: Array<{
+    id: string;
+    ecnNumber: string;
+    title: string;
+    status: string;
+  }>;
 }
 
-function VisualTreeView({ data }: { data: TraceabilityData }) {
-  const getStatusColor = (status: string, type: 'ECR' | 'ECO' | 'ECN') => {
-    const colors = {
-      ECR: {
-        APPROVED: 'bg-green-100 text-green-800 border-green-200',
-        CONVERTED: 'bg-blue-100 text-blue-800 border-blue-200',
-        REJECTED: 'bg-red-100 text-red-800 border-red-200',
-        default: 'bg-gray-100 text-gray-800 border-gray-200'
-      },
-      ECO: {
-        COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-        IN_PROGRESS: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        BACKLOG: 'bg-gray-100 text-gray-800 border-gray-200',
-        default: 'bg-gray-100 text-gray-800 border-gray-200'
-      },
-      ECN: {
-        EFFECTIVE: 'bg-green-100 text-green-800 border-green-200',
-        DISTRIBUTED: 'bg-blue-100 text-blue-800 border-blue-200',
-        APPROVED: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        default: 'bg-gray-100 text-gray-800 border-gray-200'
-      }
-    };
-    return colors[type][status] || colors[type].default;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Traceability Tree</h3>
-      
-      <div className="flex flex-col items-center space-y-8">
-        {/* ECN Level */}
-        {data.ecn && (
-          <div className="relative">
-            <div className={`px-6 py-4 rounded-lg border-2 ${getStatusColor(data.ecn.status, 'ECN')} max-w-md`}>
-              <div className="text-center">
-                <div className="text-sm font-medium text-purple-600 mb-1">Engineering Change Notice</div>
-                <Link 
-                  href={`/dashboard/ecn/${data.ecn.id}`}
-                  className="text-lg font-bold hover:underline"
-                >
-                  {data.ecn.ecnNumber}
-                </Link>
-                <div className="text-sm text-gray-600 mt-1">{data.ecn.title}</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  Status: {data.ecn.status.replace('_', ' ')}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Created: {formatDate(data.ecn.createdAt)}
-                </div>
-                {data.ecn.effectiveDate && (
-                  <div className="text-xs text-gray-500">
-                    Effective: {formatDate(data.ecn.effectiveDate)}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Arrow down to ECO */}
-            {data.eco && (
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ECO Level */}
-        {data.eco && (
-          <div className="relative">
-            <div className={`px-6 py-4 rounded-lg border-2 ${getStatusColor(data.eco.status, 'ECO')} max-w-md`}>
-              <div className="text-center">
-                <div className="text-sm font-medium text-green-600 mb-1">Engineering Change Order</div>
-                <Link 
-                  href={`/dashboard/eco`}
-                  className="text-lg font-bold hover:underline"
-                >
-                  {data.eco.ecoNumber}
-                </Link>
-                <div className="text-sm text-gray-600 mt-1">{data.eco.title}</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  Status: {data.eco.status.replace('_', ' ')}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Priority: {data.eco.priority}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Created: {formatDate(data.eco.createdAt)}
-                </div>
-                {data.eco.completedAt && (
-                  <div className="text-xs text-gray-500">
-                    Completed: {formatDate(data.eco.completedAt)}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Arrow down to ECRs */}
-            {data.ecrs.length > 0 && (
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ECRs Level */}
-        {data.ecrs.length > 0 && (
-          <div className="relative">
-            <div className="text-sm font-medium text-blue-600 mb-4 text-center">
-              Engineering Change Requests ({data.ecrs.length})
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
-              {data.ecrs.map((ecr) => (
-                <div key={ecr.id} className={`px-4 py-3 rounded-lg border ${getStatusColor(ecr.status, 'ECR')}`}>
-                  <div className="text-center">
-                    <Link 
-                      href={`/dashboard/ecr/${ecr.id}`}
-                      className="text-sm font-bold hover:underline"
-                    >
-                      {ecr.ecrNumber}
-                    </Link>
-                    <div className="text-xs text-gray-600 mt-1 truncate">{ecr.title}</div>
-                    <div className="text-xs text-gray-500 mt-2">
-                      Status: {ecr.status.replace('_', ' ')}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Urgency: {ecr.urgency}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      By: {ecr.submitter.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Created: {formatDate(ecr.createdAt)}
-                    </div>
-                    {ecr.approvedAt && (
-                      <div className="text-xs text-gray-500">
-                        Approved: {formatDate(ecr.approvedAt)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Timeline({ events }: { events: TimelineEvent[] }) {
-  const getEventColor = (type: string) => {
-    if (type.includes('CREATED')) return 'bg-blue-100 text-blue-800';
-    if (type.includes('SUBMITTED')) return 'bg-yellow-100 text-yellow-800';
-    if (type.includes('APPROVED')) return 'bg-green-100 text-green-800';
-    if (type.includes('REJECTED')) return 'bg-red-100 text-red-800';
-    if (type.includes('COMPLETED')) return 'bg-green-100 text-green-800';
-    if (type.includes('DISTRIBUTED')) return 'bg-blue-100 text-blue-800';
-    if (type.includes('EFFECTIVE')) return 'bg-purple-100 text-purple-800';
-    return 'bg-gray-100 text-gray-800';
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete Timeline</h3>
-      
-      <div className="space-y-4">
-        {events.map((event, index) => (
-          <div key={index} className="flex items-start space-x-4">
-            <div className="flex-shrink-0">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${getEventColor(event.type)}`}>
-                {event.recordType.charAt(0)}
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-900">{event.title}</p>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEventColor(event.type)}`}>
-                  {event.status.replace('_', ' ')}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600">{event.description}</p>
-              <div className="flex items-center justify-between mt-2">
-                <div className="text-xs text-gray-500">
-                  {formatDateTime(event.date)}
-                </div>
-                {event.user && (
-                  <div className="text-xs text-gray-500">
-                    by {event.user.name}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+interface SearchResults {
+  query: string;
+  totalResults: number;
+  chains: TraceabilityChain[];
 }
 
 export default function TraceabilityPage() {
   const { data: session } = useSession();
-  const [searchNumber, setSearchNumber] = useState('');
-  const [data, setData] = useState<TraceabilityData | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleSearch = async () => {
-    if (!searchNumber.trim()) {
-      setError('Please enter an ECR, ECO, or ECN number');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
     
+    setLoading(true);
     try {
-      const response = await fetch(`/api/traceability/${encodeURIComponent(searchNumber.trim())}`);
-      
+      const response = await fetch(`/api/traceability/search?q=${encodeURIComponent(searchQuery.trim())}`);
       if (response.ok) {
-        const traceabilityData = await response.json();
-        setData(traceabilityData);
+        const results = await response.json();
+        setSearchResults(results);
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        setError(errorData.error || 'Failed to fetch traceability data');
-        setData(null);
+        console.error('Search failed');
       }
     } catch (error) {
-      console.error('Error searching traceability:', error);
-      setError('Network error occurred');
-      setData(null);
+      console.error('Error searching:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
+  const getStatusBadge = (status: string, type: string) => {
+    let config: { bg: string; text: string } = { bg: 'bg-gray-100', text: 'text-gray-800' };
+    
+    if (type === 'ECR') {
+      const statusMap = {
+        DRAFT: { bg: 'bg-gray-100', text: 'text-gray-800' },
+        PENDING_APPROVAL: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+        APPROVED: { bg: 'bg-green-100', text: 'text-green-800' },
+        REJECTED: { bg: 'bg-red-100', text: 'text-red-800' },
+        CONVERTED: { bg: 'bg-blue-100', text: 'text-blue-800' }
+      };
+      config = statusMap[status as keyof typeof statusMap] || config;
+    } else if (type === 'ECO') {
+      const statusMap = {
+        DRAFT: { bg: 'bg-gray-100', text: 'text-gray-800' },
+        BACKLOG: { bg: 'bg-blue-100', text: 'text-blue-800' },
+        IN_PROGRESS: { bg: 'bg-amber-100', text: 'text-amber-800' },
+        TESTING: { bg: 'bg-purple-100', text: 'text-purple-800' },
+        COMPLETED: { bg: 'bg-green-100', text: 'text-green-800' },
+        CANCELLED: { bg: 'bg-red-100', text: 'text-red-800' }
+      };
+      config = statusMap[status as keyof typeof statusMap] || config;
+    } else if (type === 'ECN') {
+      const statusMap = {
+        DRAFT: { bg: 'bg-gray-100', text: 'text-gray-800' },
+        PENDING_APPROVAL: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+        APPROVED: { bg: 'bg-green-100', text: 'text-green-800' },
+        DISTRIBUTED: { bg: 'bg-blue-100', text: 'text-blue-800' },
+        CLOSED: { bg: 'bg-slate-100', text: 'text-slate-800' }
+      };
+      config = statusMap[status as keyof typeof statusMap] || config;
+    }
+
+    return (
+      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+        {status.replace('_', ' ')}
+      </span>
+    );
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'ECR':
+        return '📝';
+      case 'ECO':
+        return '🔧';
+      case 'ECN':
+        return '📢';
+      default:
+        return '📄';
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Traceability</h1>
-          <p className="text-gray-600 mt-2">
-            Track complete history from ECRs through ECOs to ECNs
-          </p>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <div className="max-w-md">
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-            Search by Number
-          </label>
-          <p className="text-xs text-gray-500 mb-3">
-            Enter any ECR, ECO, or ECN number to see the complete chain
-          </p>
-          <div className="flex space-x-3">
-            <input
-              type="text"
-              id="search"
-              placeholder="e.g., ECR-2025-001, ECO-2025-001, ECN-2025-001"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              value={searchNumber}
-              onChange={(e) => setSearchNumber(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400"
-            >
-              {loading ? 'Searching...' : 'Search'}
-            </button>
-          </div>
-          {error && (
-            <p className="text-red-600 text-sm mt-2">{error}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Results */}
-      {data && (
-        <div className="space-y-6">
-          {/* Summary */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-lg font-medium text-blue-900 mb-2">
-              Traceability Chain Found
-            </h3>
-            <div className="text-sm text-blue-700">
-              <p>
-                <span className="font-medium">Search started from:</span> {data.type} ({searchNumber})
-              </p>
-              <div className="mt-2 grid grid-cols-3 gap-4">
-                <div>
-                  <span className="font-medium">ECRs:</span> {data.ecrs.length}
-                </div>
-                <div>
-                  <span className="font-medium">ECO:</span> {data.eco ? data.eco.ecoNumber : 'None'}
-                </div>
-                <div>
-                  <span className="font-medium">ECN:</span> {data.ecn ? data.ecn.ecnNumber : 'None'}
-                </div>
+  const renderChainVisualization = (chain: TraceabilityChain) => {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        <div className="flex flex-col space-y-4">
+          {/* Main Entity */}
+          <div className="flex items-center justify-center">
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+              <div className="flex items-center space-x-2 mb-2">
+                <span className="text-lg">{getTypeIcon(chain.type)}</span>
+                <Link
+                  href={`/dashboard/${chain.type.toLowerCase()}/${chain.id}`}
+                  className="font-bold text-blue-600 hover:text-blue-800"
+                >
+                  {chain.number}
+                </Link>
+              </div>
+              <p className="text-sm text-gray-600 mb-2">{chain.title}</p>
+              <div className="flex items-center justify-center space-x-2">
+                {getStatusBadge(chain.status, chain.type)}
+                <span className="text-xs text-gray-500">by {chain.submitter.name}</span>
               </div>
             </div>
           </div>
 
-          {/* Visual Tree */}
-          <VisualTreeView data={data} />
+          {/* Relationships */}
+          <div className="flex flex-col items-center space-y-4">
+            
+            {/* Parent ECO (for ECNs) */}
+            {chain.parentECO && (
+              <>
+                <div className="text-gray-400">↑</div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm">{getTypeIcon('ECO')}</span>
+                    <Link
+                      href={`/dashboard/eco/${chain.parentECO.id}`}
+                      className="font-semibold text-yellow-600 hover:text-yellow-800"
+                    >
+                      {chain.parentECO.ecoNumber}
+                    </Link>
+                  </div>
+                  <p className="text-xs text-gray-600">{chain.parentECO.title}</p>
+                  {getStatusBadge(chain.parentECO.status, 'ECO')}
+                </div>
+              </>
+            )}
 
-          {/* Timeline */}
-          <Timeline events={data.timeline} />
+            {/* Child ECO (for ECRs) */}
+            {chain.childECO && (
+              <>
+                <div className="text-gray-400">↓</div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm">{getTypeIcon('ECO')}</span>
+                    <Link
+                      href={`/dashboard/eco/${chain.childECO.id}`}
+                      className="font-semibold text-yellow-600 hover:text-yellow-800"
+                    >
+                      {chain.childECO.ecoNumber}
+                    </Link>
+                  </div>
+                  <p className="text-xs text-gray-600">{chain.childECO.title}</p>
+                  {getStatusBadge(chain.childECO.status, 'ECO')}
+                </div>
+              </>
+            )}
+
+            {/* Child ECNs (for ECOs and ECRs) */}
+            {chain.childECNs && chain.childECNs.length > 0 && (
+              <>
+                <div className="text-gray-400">↓</div>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {chain.childECNs.map((ecn) => (
+                    <div key={ecn.id} className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-sm">{getTypeIcon('ECN')}</span>
+                        <Link
+                          href={`/dashboard/ecn/${ecn.id}`}
+                          className="font-semibold text-green-600 hover:text-green-800"
+                        >
+                          {ecn.ecnNumber}
+                        </Link>
+                      </div>
+                      <p className="text-xs text-gray-600">{ecn.title}</p>
+                      {getStatusBadge(ecn.status, 'ECN')}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Linked ECRs (for ECOs and ECNs) */}
+            {chain.linkedECRs && chain.linkedECRs.length > 0 && chain.type !== 'ECR' && (
+              <>
+                <div className="text-gray-400">
+                  {chain.type === 'ECN' ? '↑' : '↑'}
+                </div>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {chain.linkedECRs.map((ecr) => (
+                    <div key={ecr.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-sm">{getTypeIcon('ECR')}</span>
+                        <Link
+                          href={`/dashboard/ecr/${ecr.id}`}
+                          className="font-semibold text-gray-600 hover:text-gray-800"
+                        >
+                          {ecr.ecrNumber}
+                        </Link>
+                      </div>
+                      <p className="text-xs text-gray-600">{ecr.title}</p>
+                      <div className="flex items-center justify-center space-x-1">
+                        {getStatusBadge(ecr.status, 'ECR')}
+                        <span className="text-xs text-gray-500">by {ecr.submitter.name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (!session) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Traceability Search</h1>
+        <p className="text-gray-600">
+          Search for any ECR, ECO, or ECN number to view the complete traceability chain
+        </p>
+      </div>
+
+      {/* Search Form */}
+      <div className="bg-white shadow rounded-lg p-6 mb-8">
+        <form onSubmit={handleSearch} className="flex space-x-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Enter ECR, ECO, or ECN number (e.g., ECR-25-001, ECO-25-001, ECN-25-001)"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading || !searchQuery.trim()}
+            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            {loading ? 'Searching...' : 'Search'}
+          </button>
+        </form>
+      </div>
+
+      {/* Search Results */}
+      {searchResults && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Search Results for "{searchResults.query}"
+            </h2>
+            <span className="text-gray-600">
+              {searchResults.totalResults} result{searchResults.totalResults !== 1 ? 's' : ''} found
+            </span>
+          </div>
+
+          {searchResults.chains.length === 0 ? (
+            <div className="bg-white shadow rounded-lg p-8 text-center">
+              <p className="text-gray-500 text-lg">No results found for your search query.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try searching for a specific ECR, ECO, or ECN number or keywords from titles.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {searchResults.chains.map((chain) => renderChainVisualization(chain))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Help */}
-      {!data && !loading && !error && (
-        <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">How to Use Traceability</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <h4 className="font-medium text-blue-600 mb-2">Search by ECR</h4>
-              <p className="text-sm text-gray-600">
-                Enter an ECR number to see what ECO it was bundled into and the final ECN that was created.
-              </p>
+      {/* Help Text */}
+      {!searchResults && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Use Traceability Search</h3>
+          <div className="text-blue-800 space-y-2">
+            <p>• Search by number: ECR-25-001, ECO-25-001, ECN-25-001</p>
+            <p>• Search by title or description keywords</p>
+            <p>• View complete relationship chains between ECRs, ECOs, and ECNs</p>
+            <p>• Click on any item in the chain to view detailed information</p>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-4 rounded border">
+              <div className="flex items-center space-x-2 mb-2">
+                <span>📝</span>
+                <strong>ECR</strong>
+              </div>
+              <p className="text-sm text-gray-600">Engineering Change Request - Initiates the change process</p>
             </div>
-            <div>
-              <h4 className="font-medium text-green-600 mb-2">Search by ECO</h4>
-              <p className="text-sm text-gray-600">
-                Enter an ECO number to see all the ECRs it contains and any ECN that was generated from it.
-              </p>
+            <div className="bg-white p-4 rounded border">
+              <div className="flex items-center space-x-2 mb-2">
+                <span>🔧</span>
+                <strong>ECO</strong>
+              </div>
+              <p className="text-sm text-gray-600">Engineering Change Order - Approves and implements changes</p>
             </div>
-            <div>
-              <h4 className="font-medium text-purple-600 mb-2">Search by ECN</h4>
-              <p className="text-sm text-gray-600">
-                Enter an ECN number to see the parent ECO and all the original ECRs that led to this change notice.
-              </p>
+            <div className="bg-white p-4 rounded border">
+              <div className="flex items-center space-x-2 mb-2">
+                <span>📢</span>
+                <strong>ECN</strong>
+              </div>
+              <p className="text-sm text-gray-600">Engineering Change Notice - Communicates implemented changes</p>
             </div>
           </div>
         </div>

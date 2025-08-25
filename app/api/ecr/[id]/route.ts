@@ -30,6 +30,24 @@ export async function GET(
         assignee: { select: { id: true, name: true, email: true } },
         approver: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
+        eco: {
+          select: {
+            id: true,
+            ecoNumber: true,
+            title: true,
+            status: true,
+            createdAt: true,
+            completedAt: true,
+            ecns: {
+              select: {
+                id: true,
+                ecnNumber: true,
+                title: true,
+                status: true
+              }
+            }
+          }
+        }
       },
     });
 
@@ -119,6 +137,24 @@ export async function PATCH(
         assignee: { select: { id: true, name: true, email: true } },
         approver: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
+        eco: {
+          select: {
+            id: true,
+            ecoNumber: true,
+            title: true,
+            status: true,
+            createdAt: true,
+            completedAt: true,
+            ecns: {
+              select: {
+                id: true,
+                ecnNumber: true,
+                title: true,
+                status: true
+              }
+            }
+          }
+        }
       },
     });
 
