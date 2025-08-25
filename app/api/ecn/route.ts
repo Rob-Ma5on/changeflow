@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { generateNumber } from '@/lib/numbering';
 
 export async function GET(request: NextRequest) {
   try {
@@ -68,13 +69,20 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       title,
       description,
       ecoId,
-      organizationId,
-      submitterId,
       assigneeId,
       effectiveDate,
       changesImplemented,
@@ -83,23 +91,18 @@ export async function POST(request: NextRequest) {
       verificationMethod,
     } = body;
 
-    if (!title || !description || !organizationId || !submitterId) {
+    const organizationId = session.user.organizationId;
+    const submitterId = session.user.id;
+
+    if (!title || !description) {
       return NextResponse.json(
         { error: 'Required fields are missing' },
         { status: 400 }
       );
     }
 
-    const latestEcn = await prisma.eCN.findFirst({
-      where: { organizationId },
-      orderBy: { ecnNumber: 'desc' },
-      select: { ecnNumber: true },
-    });
-
-    const nextNumber = latestEcn
-      ? parseInt(latestEcn.ecnNumber.split('-')[1]) + 1
-      : 1;
-    const ecnNumber = `ECN-${nextNumber.toString().padStart(4, '0')}`;
+    // Generate ECN number using new year-based numbering system
+    const ecnNumber = await generateNumber('ECN', organizationId);
 
     const ecn = await prisma.eCN.create({
       data: {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { generateNumber } from '@/lib/numbering';
 
 export async function GET() {
   try {
@@ -78,22 +79,8 @@ export async function POST(request: NextRequest) {
     const organizationId = session.user.organizationId;
     const submitterId = session.user.id;
 
-    const currentYear = new Date().getFullYear();
-    const latestEco = await prisma.eCO.findFirst({
-      where: { 
-        organizationId,
-        ecoNumber: {
-          startsWith: `ECO-${currentYear}-`
-        }
-      },
-      orderBy: { ecoNumber: 'desc' },
-      select: { ecoNumber: true },
-    });
-
-    const nextNumber = latestEco
-      ? parseInt(latestEco.ecoNumber.split('-')[2]) + 1
-      : 1;
-    const ecoNumber = `ECO-${currentYear}-${nextNumber.toString().padStart(3, '0')}`;
+    // Generate ECO number using new year-based numbering system
+    const ecoNumber = await generateNumber('ECO', organizationId);
 
     const eco = await prisma.eCO.create({
       data: {

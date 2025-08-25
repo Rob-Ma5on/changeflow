@@ -92,23 +92,23 @@ export async function GET() {
     // Fetch recent activity
     const recentActivity = await prisma.$transaction(async (tx) => {
       const [recentEcrs, recentEcos, recentEcns] = await Promise.all([
-        tx.ecr.findMany({
+        tx.eCR.findMany({
           where: { organizationId },
           orderBy: { updatedAt: 'desc' },
           take: 3,
           include: {
-            requestor: true
+            submitter: { select: { id: true, name: true, email: true } }
           }
         }),
-        tx.eco.findMany({
+        tx.eCO.findMany({
           where: { organizationId },
           orderBy: { updatedAt: 'desc' },
           take: 3,
           include: {
-            assignee: true
+            assignee: { select: { id: true, name: true, email: true } }
           }
         }),
-        tx.ecn.findMany({
+        tx.eCN.findMany({
           where: { organizationId },
           orderBy: { updatedAt: 'desc' },
           take: 3,

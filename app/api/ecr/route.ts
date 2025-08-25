@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { generateNumber } from '@/lib/numbering';
 
 export async function GET(request: NextRequest) {
   try {
@@ -122,30 +123,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const currentYear = new Date().getFullYear();
-    
-    // Find the highest ECR number for this organization and year
-    const latestEcr = await prisma.eCR.findFirst({
-      where: { 
-        organizationId,
-        ecrNumber: {
-          startsWith: `ECR-${currentYear}-`
-        }
-      },
-      orderBy: { 
-        ecrNumber: 'desc' 
-      },
-      select: { ecrNumber: true },
-    });
-
-    let nextNumber = 1;
-    if (latestEcr) {
-      const currentNumber = parseInt(latestEcr.ecrNumber.split('-')[2]);
-      nextNumber = currentNumber + 1;
-    }
-    
-    // Create a unique ECR number with organization prefix to avoid conflicts
-    const ecrNumber = `ECR-${currentYear}-${nextNumber.toString().padStart(3, '0')}`;
+    // Generate ECR number using new year-based numbering system
+    const ecrNumber = await generateNumber('ECR', organizationId);
     console.log('Creating ECR with number:', ecrNumber, 'for organization:', organizationId);
 
     const ecr = await prisma.eCR.create({
