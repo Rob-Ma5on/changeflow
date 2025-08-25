@@ -217,71 +217,66 @@ export default function ECNDetailPage() {
       </div>
 
       {/* Traceability Chain */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-blue-900 mb-4">Traceability Chain</h3>
-        
-        {/* ECRs Section */}
-        {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && (
-          <div className="mb-6">
-            <h4 className="text-md font-medium text-blue-800 mb-3">
-              Original ECRs ({ecn.eco.ecrs.length})
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {ecn.eco.ecrs.map((ecr) => (
-                <div key={ecr.id} className="bg-white p-3 rounded border border-blue-200">
-                  <div className="font-medium text-gray-900">{ecr.ecrNumber}</div>
-                  <div className="text-gray-600 text-xs truncate">{ecr.title}</div>
-                  <div className="text-gray-500 text-xs">Request by {ecr.submitter.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Flow Visualization */}
-        <div className="flex items-center justify-center space-x-4 text-sm">
-          <div className="text-center">
-            <div className="bg-gray-100 p-2 rounded-lg">
-              <span className="text-xs font-medium text-gray-600">
-                {ecn.eco?.ecrs?.length || 0} ECR{(ecn.eco?.ecrs?.length || 0) !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">Original Requests</div>
-          </div>
+      {ecn.eco && (
+        <div className="bg-blue-50 rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-medium text-blue-900 mb-4">Traceability Chain</h2>
           
-          <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          
-          {ecn.eco && (
-            <>
-              <div className="text-center">
-                <div className="bg-white p-2 rounded-lg border border-blue-200">
-                  <div className="font-medium text-blue-700 text-xs">{ecn.eco.ecoNumber}</div>
-                  <div className="text-gray-600 text-xs truncate max-w-20">{ecn.eco.title}</div>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">Implementation Order</div>
+          {/* Show ECRs if they exist */}
+          {ecn.eco.ecrs && ecn.eco.ecrs.length > 0 && (
+            <div className="mb-4">
+              <span className="text-sm text-gray-600">Original ECRs:</span>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {ecn.eco.ecrs.map((ecr) => (
+                  <Link
+                    key={ecr.id}
+                    href={`/dashboard/ecr/${ecr.id}`}
+                    className="text-blue-600 hover:text-blue-800 text-sm"
+                  >
+                    {ecr.ecrNumber}
+                  </Link>
+                ))}
               </div>
-              
-              <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </>
+            </div>
           )}
           
-          <div className="text-center">
-            <div className="bg-purple-50 p-2 rounded-lg border border-purple-200">
-              <div className="font-medium text-purple-700 text-xs">{ecn.ecnNumber}</div>
-              <div className="text-gray-600 text-xs truncate max-w-20">{ecn.title}</div>
+          {/* Arrow */}
+          <div className="text-gray-400 my-2">→</div>
+          
+          {/* Show ECO */}
+          <div className="mb-4">
+            <span className="text-sm text-gray-600">Engineering Change Order:</span>
+            <div className="mt-2">
+              <Link
+                href={`/dashboard/eco/${ecn.eco.id}`}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                {ecn.eco.ecoNumber}: {ecn.eco.title}
+              </Link>
             </div>
-            <div className="text-xs text-gray-500 mt-1">Change Notice</div>
+          </div>
+          
+          {/* Arrow */}
+          <div className="text-gray-400 my-2">→</div>
+          
+          {/* Show ECN */}
+          <div>
+            <span className="text-sm text-gray-600">Engineering Change Notice:</span>
+            <div className="mt-2">
+              <span className="text-purple-600 font-medium">{ecn.ecnNumber}</span>
+            </div>
+          </div>
+          
+          {/* Summary */}
+          <div className="mt-4 pt-4 border-t border-blue-200">
+            <p className="text-sm text-blue-700">
+              This ECN notifies of changes implemented through the linked ECO 
+              {ecn.eco.ecrs && ecn.eco.ecrs.length > 0 && 
+                ` and ${ecn.eco.ecrs.length} original ECR${ecn.eco.ecrs.length > 1 ? 's' : ''}`
+              }
+            </p>
           </div>
         </div>
-        
-        <p className="text-blue-700 text-sm mt-4">
-          This ECN notifies of changes implemented through the linked ECO{ecn.eco?.ecrs && ecn.eco.ecrs.length > 1 ? ` and ${ecn.eco.ecrs.length} original ECRs` : ' and original ECR'}.
-        </p>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ECN Details */}
