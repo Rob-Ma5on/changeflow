@@ -60,6 +60,7 @@ export async function PATCH(
           approver: { select: { id: true, name: true, email: true } },
           organization: { select: { id: true, name: true } },
           ecrs: { select: { id: true, ecrNumber: true, title: true } },
+          ecns: { select: { id: true, ecnNumber: true, title: true, status: true } },
         },
       });
 
@@ -118,6 +119,14 @@ export async function GET(
             submitter: { select: { name: true } }
           } 
         },
+        ecns: {
+          select: {
+            id: true,
+            ecnNumber: true,
+            title: true,
+            status: true
+          }
+        }
       },
     });
 

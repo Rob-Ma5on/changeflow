@@ -101,8 +101,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate ECN number using new year-based numbering system
-    const ecnNumber = await generateNumber('ECN', organizationId);
+    let ecnNumber: string;
+    
+    // If creating ECN from an ECO, use matching number format
+    if (ecoId) {
+      const eco = await prisma.eCO.findFirst({
+        where: { id: ecoId, organizationId },
+        select: { ecoNumber: true }
+      });
+      
+      if (!eco) {
+        return NextResponse.json(
+          { error: 'ECO not found' },
+          { status: 404 }
+        );
+      }
+      
+      // Convert ECO-25-001 to ECN-25-001
+      ecnNumber = eco.ecoNumber.replace('ECO-', 'ECN-');
+    } else {
+      // Generate new ECN number using year-based numbering system
+      ecnNumber = await generateNumber('ECN', organizationId);
+    }
 
     const ecn = await prisma.eCN.create({
       data: {

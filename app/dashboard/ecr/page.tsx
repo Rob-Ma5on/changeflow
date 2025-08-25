@@ -191,7 +191,7 @@ export default function ECRPage() {
 
     setBundling(true);
     try {
-      const response = await fetch('/api/eco/bundle-ecrs', {
+      const response = await fetch('/api/eco/bundle', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
