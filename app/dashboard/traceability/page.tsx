@@ -125,125 +125,141 @@ export default function TraceabilityPage() {
   };
 
   const renderChainVisualization = (chain: TraceabilityChain) => {
+    // Build the complete chain: ECRs → ECO → ECN
+    const buildCompleteChain = () => {
+      const chainItems = [];
+
+      // Add ECRs if present
+      if (chain.linkedECRs && chain.linkedECRs.length > 0) {
+        chainItems.push({
+          type: 'ECRs',
+          items: chain.linkedECRs,
+          color: 'gray'
+        });
+      }
+
+      // Add parent ECO for ECNs
+      if (chain.parentECO) {
+        chainItems.push({
+          type: 'ECO',
+          items: [chain.parentECO],
+          color: 'yellow'
+        });
+      }
+
+      // Add child ECO for ECRs
+      if (chain.childECO) {
+        chainItems.push({
+          type: 'ECO',
+          items: [chain.childECO],
+          color: 'yellow'
+        });
+      }
+
+      // Add the main entity
+      chainItems.push({
+        type: chain.type,
+        items: [chain],
+        color: 'blue',
+        isMain: true
+      });
+
+      // Add child ECNs
+      if (chain.childECNs && chain.childECNs.length > 0) {
+        chainItems.push({
+          type: 'ECNs',
+          items: chain.childECNs,
+          color: 'green'
+        });
+      }
+
+      return chainItems;
+    };
+
+    const completeChain = buildCompleteChain();
+
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <div className="flex flex-col space-y-4">
-          {/* Main Entity */}
-          <div className="flex items-center justify-center">
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-lg">{getTypeIcon(chain.type)}</span>
-                <Link
-                  href={`/dashboard/${chain.type.toLowerCase()}/${chain.id}`}
-                  className="font-bold text-blue-600 hover:text-blue-800"
-                >
-                  {chain.number}
-                </Link>
+        {/* Linear Chain Display */}
+        <div className="flex flex-col items-center space-y-4">
+          {completeChain.map((segment, segmentIndex) => (
+            <div key={segmentIndex} className="flex flex-col items-center space-y-2">
+              {/* Segment Items */}
+              <div className="flex flex-wrap justify-center gap-3">
+                {segment.items.map((item, itemIndex) => {
+                  const isECR = segment.type === 'ECRs';
+                  const isECO = segment.type === 'ECO';
+                  const isECN = segment.type === 'ECNs';
+                  const isMain = segment.isMain;
+                  
+                  const colorClasses = {
+                    gray: 'bg-gray-50 border-gray-200 text-gray-600',
+                    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-600',
+                    blue: isMain ? 'bg-blue-50 border-2 border-blue-200 text-blue-600' : 'bg-blue-50 border-blue-200 text-blue-600',
+                    green: 'bg-green-50 border-green-200 text-green-600'
+                  };
+
+                  const linkPath = isECR ? `/dashboard/ecr/${item.id}` :
+                                 isECO ? `/dashboard/eco/${item.id}` :
+                                 isECN ? `/dashboard/ecn/${item.id}` :
+                                 `/dashboard/${chain.type.toLowerCase()}/${item.id}`;
+
+                  const itemNumber = isECR ? item.ecrNumber :
+                                   isECO ? item.ecoNumber :
+                                   isECN ? item.ecnNumber :
+                                   item.number;
+
+                  const itemType = isECR ? 'ECR' :
+                                 isECO ? 'ECO' :
+                                 isECN ? 'ECN' :
+                                 item.type;
+
+                  return (
+                    <div 
+                      key={item.id || itemIndex} 
+                      className={`${colorClasses[segment.color]} border rounded-lg ${isMain ? 'p-4' : 'p-3'} text-center`}
+                    >
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className={isMain ? "text-lg" : "text-sm"}>{getTypeIcon(itemType)}</span>
+                        <Link
+                          href={linkPath}
+                          className={`${isMain ? 'font-bold' : 'font-semibold'} hover:opacity-80`}
+                        >
+                          {itemNumber}
+                        </Link>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-2">{item.title}</p>
+                      <div className="flex items-center justify-center space-x-2">
+                        {getStatusBadge(item.status, itemType)}
+                        {isMain && <span className="text-xs text-gray-500">by {item.submitter.name}</span>}
+                        {isECR && <span className="text-xs text-gray-500">by {item.submitter.name}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <p className="text-sm text-gray-600 mb-2">{chain.title}</p>
-              <div className="flex items-center justify-center space-x-2">
-                {getStatusBadge(chain.status, chain.type)}
-                <span className="text-xs text-gray-500">by {chain.submitter.name}</span>
-              </div>
+
+              {/* Arrow (except for last segment) */}
+              {segmentIndex < completeChain.length - 1 && (
+                <div className="text-gray-400 text-xl">↓</div>
+              )}
             </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Relationships */}
-          <div className="flex flex-col items-center space-y-4">
-            
-            {/* Parent ECO (for ECNs) */}
-            {chain.parentECO && (
-              <>
-                <div className="text-gray-400">↑</div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-sm">{getTypeIcon('ECO')}</span>
-                    <Link
-                      href={`/dashboard/eco/${chain.parentECO.id}`}
-                      className="font-semibold text-yellow-600 hover:text-yellow-800"
-                    >
-                      {chain.parentECO.ecoNumber}
-                    </Link>
-                  </div>
-                  <p className="text-xs text-gray-600">{chain.parentECO.title}</p>
-                  {getStatusBadge(chain.parentECO.status, 'ECO')}
-                </div>
-              </>
-            )}
-
-            {/* Child ECO (for ECRs) */}
-            {chain.childECO && (
-              <>
-                <div className="text-gray-400">↓</div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="text-sm">{getTypeIcon('ECO')}</span>
-                    <Link
-                      href={`/dashboard/eco/${chain.childECO.id}`}
-                      className="font-semibold text-yellow-600 hover:text-yellow-800"
-                    >
-                      {chain.childECO.ecoNumber}
-                    </Link>
-                  </div>
-                  <p className="text-xs text-gray-600">{chain.childECO.title}</p>
-                  {getStatusBadge(chain.childECO.status, 'ECO')}
-                </div>
-              </>
-            )}
-
-            {/* Child ECNs (for ECOs and ECRs) */}
-            {chain.childECNs && chain.childECNs.length > 0 && (
-              <>
-                <div className="text-gray-400">↓</div>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {chain.childECNs.map((ecn) => (
-                    <div key={ecn.id} className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm">{getTypeIcon('ECN')}</span>
-                        <Link
-                          href={`/dashboard/ecn/${ecn.id}`}
-                          className="font-semibold text-green-600 hover:text-green-800"
-                        >
-                          {ecn.ecnNumber}
-                        </Link>
-                      </div>
-                      <p className="text-xs text-gray-600">{ecn.title}</p>
-                      {getStatusBadge(ecn.status, 'ECN')}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Linked ECRs (for ECOs and ECNs) */}
-            {chain.linkedECRs && chain.linkedECRs.length > 0 && chain.type !== 'ECR' && (
-              <>
-                <div className="text-gray-400">
-                  {chain.type === 'ECN' ? '↑' : '↑'}
-                </div>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {chain.linkedECRs.map((ecr) => (
-                    <div key={ecr.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm">{getTypeIcon('ECR')}</span>
-                        <Link
-                          href={`/dashboard/ecr/${ecr.id}`}
-                          className="font-semibold text-gray-600 hover:text-gray-800"
-                        >
-                          {ecr.ecrNumber}
-                        </Link>
-                      </div>
-                      <p className="text-xs text-gray-600">{ecr.title}</p>
-                      <div className="flex items-center justify-center space-x-1">
-                        {getStatusBadge(ecr.status, 'ECR')}
-                        <span className="text-xs text-gray-500">by {ecr.submitter.name}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+        {/* Summary */}
+        <div className="mt-6 pt-4 border-t border-gray-200 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2">Traceability Summary</h4>
+          <p className="text-sm text-blue-700">
+            {chain.type === 'ECR' && chain.childECO && chain.childECNs && chain.childECNs.length > 0 && 
+              `ECR ${chain.number} was implemented through ${chain.childECO.ecoNumber} and communicated via ${chain.childECNs.map(ecn => ecn.ecnNumber).join(', ')}`}
+            {chain.type === 'ECO' && chain.linkedECRs && chain.linkedECRs.length > 0 && chain.childECNs && chain.childECNs.length > 0 &&
+              `ECO ${chain.number} implements ${chain.linkedECRs.length} ECR${chain.linkedECRs.length > 1 ? 's' : ''} (${chain.linkedECRs.map(ecr => ecr.ecrNumber).join(', ')}) and is communicated via ${chain.childECNs.map(ecn => ecn.ecnNumber).join(', ')}`}
+            {chain.type === 'ECN' && chain.parentECO && chain.linkedECRs && chain.linkedECRs.length > 0 &&
+              `ECN ${chain.number} communicates the implementation of ${chain.linkedECRs.length} ECR${chain.linkedECRs.length > 1 ? 's' : ''} (${chain.linkedECRs.map(ecr => ecr.ecrNumber).join(', ')}) through ${chain.parentECO.ecoNumber}`}
+            {(!chain.linkedECRs || chain.linkedECRs.length === 0) && !chain.parentECO && !chain.childECO &&
+              `${chain.type} ${chain.number} is not currently linked in a traceability chain`}
+          </p>
         </div>
       </div>
     );

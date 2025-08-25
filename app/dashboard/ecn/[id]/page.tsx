@@ -230,9 +230,9 @@ export default function ECNDetailPage() {
                   <Link
                     key={ecr.id}
                     href={`/dashboard/ecr/${ecr.id}`}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
                   >
-                    {ecr.ecrNumber}
+                    📝 {ecr.ecrNumber}
                   </Link>
                 ))}
               </div>

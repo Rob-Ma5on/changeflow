@@ -67,22 +67,35 @@ function ECNDetailModal({ ecn, isOpen, onClose }: ECNDetailModalProps) {
             {/* Traceability Chain */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="text-lg font-medium text-blue-900 mb-3">Traceability Chain</h3>
-              <div className="flex items-center space-x-2 text-sm">
-                {ecn.eco?.ecr && (
+              <div className="flex items-center flex-wrap gap-2 text-sm">
+                {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && (
                   <>
-                    <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                      {ecn.eco.ecr.ecrNumber}
-                    </span>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    {ecn.eco.ecrs.map((ecr, index) => (
+                      <div key={ecr.id} className="flex items-center space-x-2">
+                        <Link
+                          href={`/dashboard/ecr/${ecr.id}`}
+                          className="bg-gray-100 text-gray-800 px-2 py-1 rounded hover:bg-gray-200 flex items-center space-x-1"
+                        >
+                          <span>📝</span>
+                          <span>{ecr.ecrNumber}</span>
+                        </Link>
+                        {index === ecn.eco.ecrs.length - 1 && (
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        )}
+                      </div>
+                    ))}
                   </>
                 )}
                 {ecn.eco && (
                   <>
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    <Link
+                      href={`/dashboard/eco/${ecn.eco.id}`}
+                      className="bg-blue-100 text-blue-800 px-2 py-1 rounded hover:bg-blue-200"
+                    >
                       {ecn.eco.ecoNumber}
-                    </span>
+                    </Link>
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -93,7 +106,10 @@ function ECNDetailModal({ ecn, isOpen, onClose }: ECNDetailModalProps) {
                 </span>
               </div>
               <p className="text-blue-700 text-sm mt-2">
-                This ECN notifies of changes implemented through the linked ECO and original ECR
+                This ECN notifies of changes implemented through the linked ECO
+                {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && 
+                  ` and ${ecn.eco.ecrs.length} original ECR${ecn.eco.ecrs.length > 1 ? 's' : ''}`
+                }
               </p>
             </div>
 
