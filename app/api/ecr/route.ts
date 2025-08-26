@@ -35,6 +35,14 @@ export async function GET(request: NextRequest) {
         assignee: { select: { id: true, name: true, email: true } },
         approver: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
+        eco: {
+          select: {
+            id: true,
+            ecoNumber: true,
+            title: true,
+            status: true,
+          }
+        },
       },
       orderBy: {
         createdAt: 'desc',

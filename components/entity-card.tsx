@@ -20,6 +20,13 @@ interface EntityCardProps {
   dueDate?: string
   onClick?: () => void
   className?: string
+  linkedEntity?: {
+    type: 'ECR' | 'ECO' | 'ECN'
+    id: string
+    number: string
+    title: string
+  }
+  ecrCount?: number // For ECO cards to show bundled ECR count
 }
 
 export default function EntityCard({
@@ -33,7 +40,9 @@ export default function EntityCard({
   createdDate,
   dueDate,
   onClick,
-  className = ''
+  className = '',
+  linkedEntity,
+  ecrCount
 }: EntityCardProps) {
   const getEntityBadgeStyle = () => {
     switch (entityType) {
@@ -139,6 +148,28 @@ export default function EntityCard({
           {status.replace(/_/g, ' ')}
         </span>
       </div>
+
+      {/* Linked Entity or ECR Count */}
+      {linkedEntity && (
+        <div className="mb-3 p-2 bg-gray-50 rounded-md">
+          <div className="text-xs text-gray-600 mb-1">
+            {entityType === 'ECR' ? 'Linked ECO:' : 
+             entityType === 'ECO' ? 'Source ECRs:' : 
+             'Source ECO:'}
+          </div>
+          <div className="text-xs font-medium text-blue-600 hover:text-blue-800 cursor-pointer">
+            {linkedEntity.number}
+          </div>
+        </div>
+      )}
+      
+      {ecrCount && ecrCount > 0 && (
+        <div className="mb-3 p-2 bg-blue-50 rounded-md">
+          <div className="text-xs font-medium text-blue-800">
+            📝 {ecrCount} ECR{ecrCount > 1 ? 's' : ''} bundled
+          </div>
+        </div>
+      )}
 
       {/* Footer with Person and Date */}
       <div className="flex items-start justify-between pt-3 border-t border-gray-100 flex-wrap gap-2">

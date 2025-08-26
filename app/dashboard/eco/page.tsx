@@ -8,6 +8,7 @@ import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
 import { exportToExcel, formatECOsForExport } from '@/components/export-utils';
+import EntityCard from '@/components/entity-card';
 
 interface ECO {
   id: string;
@@ -15,9 +16,15 @@ interface ECO {
   title: string;
   status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'BACKLOG' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED' | 'CANCELLED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  submitter?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   assignee?: { 
     id: string;
-    name: string; 
+    name: string;
+    email: string;
   };
   ecr?: {
     id: string;
@@ -168,16 +175,42 @@ function ECODetailModal({ eco, isOpen, onClose, onStatusUpdate }: ECODetailModal
               </div>
             )}
 
-            {/* Linked ECR */}
-            {eco.ecr && (
+            {/* Linked ECRs */}
+            {eco.ecrs && eco.ecrs.length > 0 ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bundled ECRs ({eco.ecrs.length})</label>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {eco.ecrs.map((ecr) => (
+                    <div key={ecr.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                      <span>📝</span>
+                      <Link 
+                        href={`/dashboard/ecr/${ecr.id}`}
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                      >
+                        {ecr.ecrNumber}
+                      </Link>
+                      <span className="text-gray-600 text-sm truncate">
+                        {ecr.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : eco.ecr && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">Linked ECR</label>
-                <Link 
-                  href={`/dashboard/ecr/${eco.ecr.id}`}
-                  className="text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  {eco.ecr.ecrNumber}: {eco.ecr.title}
-                </Link>
+                <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                  <span>📝</span>
+                  <Link 
+                    href={`/dashboard/ecr/${eco.ecr.id}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    {eco.ecr.ecrNumber}
+                  </Link>
+                  <span className="text-gray-600">
+                    {eco.ecr.title}
+                  </span>
+                </div>
               </div>
             )}
 
@@ -225,115 +258,42 @@ function ECODetailModal({ eco, isOpen, onClose, onStatusUpdate }: ECODetailModal
 }
 
 function ECOCard({ eco, onClick, onCreateECN }: { eco: ECO; onClick: () => void; onCreateECN?: (ecoId: string) => void }) {
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'LOW': return { backgroundColor: '#22C55E', color: '#FFFFFF' };
-      case 'MEDIUM': return { backgroundColor: '#EAB308', color: '#FFFFFF' };
-      case 'HIGH': return { backgroundColor: '#EF4444', color: '#FFFFFF' };
-      case 'CRITICAL': return { backgroundColor: '#EF4444', color: '#FFFFFF' };
-      default: return { backgroundColor: '#6B7280', color: '#FFFFFF' };
-    }
-  };
-
   return (
-    <div
-      className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
-      onClick={onClick}
-    >
-      {/* ECO Header */}
-      <div className="flex items-start justify-between mb-2">
-        <h4 className="text-sm font-medium text-blue-600">
-          {eco.ecoNumber}
-        </h4>
-        <span 
-          className="px-2 py-1 text-xs font-medium rounded-full"
-          style={getPriorityStyle(eco.priority)}
-        >
-          {eco.priority}
-        </span>
-      </div>
-
-      {/* ECO Title */}
-      <h5 className="text-sm font-medium text-gray-900 mb-3 line-clamp-2">
-        {eco.title}
-      </h5>
-
-      {/* ECR References */}
-      {(eco.ecrs && eco.ecrs.length > 0) ? (
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-gray-600">
-              Bundled ECRs ({eco.ecrs.length})
-            </span>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                // Toggle expansion logic would go here
-              }}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
-              View All
-            </button>
-          </div>
-          <div className="space-y-1">
-            {eco.ecrs.slice(0, 2).map((ecr) => (
-              <div key={ecr.id} className="text-xs bg-gray-50 px-2 py-1 rounded border">
-                <span className="font-medium text-gray-700">{ecr.ecrNumber}</span>
-                <span className="text-gray-500 ml-1 truncate">
-                  - {ecr.title.length > 25 ? ecr.title.substring(0, 25) + '...' : ecr.title}
-                </span>
-              </div>
-            ))}
-            {eco.ecrs.length > 2 && (
-              <div className="text-xs text-gray-500 px-2 py-1">
-                +{eco.ecrs.length - 2} more ECRs
-              </div>
-            )}
-          </div>
-        </div>
-      ) : eco.ecr ? (
-        <div className="text-xs text-gray-500 mb-2">
-          From {eco.ecr.ecrNumber}
-        </div>
-      ) : null}
-
+    <div className="relative">
+      <EntityCard
+        entityType="ECO"
+        number={eco.ecoNumber}
+        title={eco.title}
+        priority={eco.priority as 'HIGH' | 'MEDIUM' | 'LOW'}
+        status={eco.status}
+        requestor={eco.submitter}
+        assignee={eco.assignee}
+        createdDate={eco.createdAt}
+        dueDate={eco.targetDate}
+        onClick={onClick}
+        ecrCount={eco.ecrs?.length}
+        linkedEntity={eco.ecr ? {
+          type: 'ECR',
+          id: eco.ecr.id,
+          number: eco.ecr.ecrNumber,
+          title: eco.ecr.title
+        } : undefined}
+      />
+      
       {/* ECN Creation Button for Completed ECOs */}
       {eco.status === 'COMPLETED' && onCreateECN && (
-        <div className="mb-3">
+        <div className="absolute top-2 right-2 z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onCreateECN(eco.id);
             }}
-            className="w-full px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 border border-purple-200 rounded hover:bg-purple-200 transition-colors"
+            className="px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 border border-purple-200 rounded hover:bg-purple-200 transition-colors"
           >
             Create ECN
           </button>
         </div>
       )}
-
-      {/* Assignee and Target Date */}
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <div className="flex items-center">
-          {eco.assignee ? (
-            <>
-              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
-                <span className="text-white text-xs font-medium">
-                  {eco.assignee.name.charAt(0)}
-                </span>
-              </div>
-              <span>{eco.assignee.name}</span>
-            </>
-          ) : (
-            <span className="text-gray-400">Unassigned</span>
-          )}
-        </div>
-        {eco.targetDate && (
-          <span className="text-gray-400">
-            Due {new Date(eco.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </span>
-        )}
-      </div>
     </div>
   );
 }

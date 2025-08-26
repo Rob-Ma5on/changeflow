@@ -428,6 +428,13 @@ export default function ECNPage() {
                       createdDate={ecn.createdAt}
                       dueDate={ecn.effectiveDate}
                       onClick={() => handleECNClick(ecn)}
+                      linkedEntity={ecn.eco ? {
+                        type: 'ECO',
+                        id: ecn.eco.id,
+                        number: ecn.eco.ecoNumber,
+                        title: ecn.eco.title
+                      } : undefined}
+                      ecrCount={ecn.eco?.ecrs ? ecn.eco.ecrs.length : undefined}
                     />
                   ))}
                   {columnEcns.length === 0 && (

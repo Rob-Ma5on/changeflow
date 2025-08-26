@@ -26,7 +26,14 @@ export async function GET() {
         assignee: { select: { id: true, name: true, email: true } },
         approver: { select: { id: true, name: true, email: true } },
         organization: { select: { id: true, name: true } },
-        ecrs: { select: { id: true, ecrNumber: true, title: true } },
+        ecrs: { 
+          select: { 
+            id: true, 
+            ecrNumber: true, 
+            title: true,
+            submitter: { select: { name: true } }
+          } 
+        },
       },
       orderBy: {
         createdAt: 'desc',

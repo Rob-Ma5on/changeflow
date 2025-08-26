@@ -26,6 +26,12 @@ interface ECR {
   costImpact?: number;
   description: string;
   reason: string;
+  eco?: {
+    id: string;
+    ecoNumber: string;
+    title: string;
+    status: string;
+  };
 }
 
 export default function ECRPage() {
@@ -436,6 +442,12 @@ export default function ECRPage() {
                         createdDate={ecr.createdAt}
                         onClick={() => window.location.href = `/dashboard/ecr/${ecr.id}`}
                         className={ecr.status === 'APPROVED' ? 'pr-8' : ''}
+                        linkedEntity={ecr.eco ? {
+                          type: 'ECO',
+                          id: ecr.eco.id,
+                          number: ecr.eco.ecoNumber,
+                          title: ecr.eco.title
+                        } : undefined}
                       />
                     </div>
                   ))}
