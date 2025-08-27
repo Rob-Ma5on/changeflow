@@ -49,7 +49,6 @@ model ECR {
   title              String
   description        String
   reason             String
-  urgency            Urgency      @default(MEDIUM)
   status             ECRStatus    @default(DRAFT)
   organizationId     String
   submitterId        String
@@ -66,9 +65,9 @@ model ECR {
   costImpact         Decimal?
   scheduleImpact            String?
   implementationPlan        String?
-  priority                  ECRPriority             @default(MEDIUM)
+  priority                  ECRPriority
   reasonForChange           String?
-  customerImpact            CustomerImpact          @default(NO_IMPACT)
+  customerImpact            CustomerImpact
   estimatedCostRange        EstimatedCostRange?
   targetImplementationDate  DateTime?
   stakeholders              String?
@@ -105,11 +104,11 @@ model ECO {
   estimatedEffort       String?
   targetDate            DateTime?
   effectiveDate         DateTime?
-  effectivityType       EffectivityType         @default(DATE_BASED)
-  materialDisposition   MaterialDisposition     @default(NO_IMPACT)
+  effectivityType       EffectivityType?
+  materialDisposition   MaterialDisposition?
   documentUpdates       String?
   implementationTeam    String?
-  inventoryImpact       Boolean                 @default(false)
+  inventoryImpact       Boolean?
   estimatedTotalCost    Decimal?
   ecns                  ECN[]
   ecrs                  ECR[]                   // Multiple ECRs can be bundled into one ECO
@@ -142,10 +141,10 @@ model ECN {
   verificationMethod            String?
   distributionList              String?
   internalStakeholders          String?
-  customerNotificationRequired  CustomerNotificationRequired    @default(NOT_REQUIRED)
+  customerNotificationRequired  CustomerNotificationRequired?
   notificationMethod            String                          @default("EMAIL")
   responseDeadline              ResponseDeadline?
-  implementationStatus          ImplementationStatus            @default(NOT_STARTED)
+  implementationStatus          ImplementationStatus?
   actualImplementationDate      DateTime?
   finalDocumentationSummary     String?
   closureApprover               String?
@@ -221,13 +220,6 @@ enum UserRole {
   MANAGER
   ENGINEER
   USER
-}
-
-enum Urgency {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
 }
 
 enum Priority {

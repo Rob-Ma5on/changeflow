@@ -120,7 +120,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="text-center">
+          <div className="text-center space-y-4">
             <p className="text-sm text-gray-600">
               New to ChangeFlow?{' '}
               <Link
@@ -130,6 +130,14 @@ export default function LoginPage() {
                 Create an account
               </Link>
             </p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <p className="text-sm font-medium text-blue-900 mb-2">Demo Account:</p>
+              <p className="text-xs text-blue-700">
+                <strong>Email:</strong> admin@acme-mfg.com<br />
+                <strong>Password:</strong> password123
+              </p>
+            </div>
           </div>
         </form>
       </div>

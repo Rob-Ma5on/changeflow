@@ -96,6 +96,19 @@ export default function NewECRPage() {
       return;
     }
 
+    // Validate all required Phase 1 fields for clean slate approach
+    if (!formData.priority) {
+      setError('Priority is required');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.customerImpact) {
+      setError('Customer impact is required');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.targetImplementationDate && new Date(formData.targetImplementationDate) <= new Date()) {
       setError('Target implementation date must be in the future');
       setIsLoading(false);
@@ -112,7 +125,6 @@ export default function NewECRPage() {
           title: formData.title.trim(),
           description: formData.description.trim(),
           reason: formData.reason.trim(),
-          urgency: formData.priority,
           priority: formData.priority,
           reasonForChange: formData.reasonForChange.join(', '),
           customerImpact: formData.customerImpact,

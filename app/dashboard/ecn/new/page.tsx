@@ -139,6 +139,25 @@ export default function NewECNPage() {
       return;
     }
 
+    // Validate all required Phase 1 fields for clean slate approach
+    if (!formData.distributionList.trim()) {
+      setError('Distribution list is required');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.customerNotificationRequired) {
+      setError('Customer notification type is required');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.implementationStatus) {
+      setError('Implementation status is required');
+      setIsLoading(false);
+      return;
+    }
+
     // Validate email format for distribution list
     if (formData.distributionList.trim()) {
       const emails = formData.distributionList.split(',').map(email => email.trim());
@@ -167,7 +186,7 @@ export default function NewECNPage() {
           affectedItems: formData.affectedItems.trim() || null,
           dispositionInstructions: formData.dispositionInstructions.trim() || null,
           verificationMethod: formData.verificationMethod.trim() || null,
-          distributionList: formData.distributionList.trim() || null,
+          distributionList: formData.distributionList.trim(),
           internalStakeholders: formData.internalStakeholders.trim() || null,
           customerNotificationRequired: formData.customerNotificationRequired,
           responseDeadline: formData.responseDeadline || null,

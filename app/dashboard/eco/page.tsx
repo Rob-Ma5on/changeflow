@@ -7,7 +7,7 @@ import Toast from '@/components/Toast';
 import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
-import { exportToExcel, formatECOsForExport } from '@/components/export-utils';
+import { exportToExcel, formatECOsForExport, ExportButton } from '@/components/export-utils';
 import EntityCard from '@/components/entity-card';
 
 interface ECO {

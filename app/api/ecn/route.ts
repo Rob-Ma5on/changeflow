@@ -103,44 +103,46 @@ export async function POST(request: NextRequest) {
     const organizationId = session.user.organizationId;
     const submitterId = session.user.id;
 
-    // Validate required fields
-    if (!title || !description) {
+    // Validate ALL required fields for clean slate approach
+    if (!title || !description || !distributionList || !distributionList.trim() || !customerNotificationRequired || !implementationStatus) {
       return NextResponse.json(
-        { error: 'Required fields are missing: title and description are required' },
+        { error: 'All required fields must be provided: title, description, distributionList, customerNotificationRequired, and implementationStatus are required' },
         { status: 400 }
       );
     }
 
-    // Validate distribution list has at least one email if provided
-    if (distributionList && distributionList.trim()) {
-      const emails = distributionList.split(',').map((email: string) => email.trim()).filter((email: string) => email.length > 0);
-      if (emails.length === 0) {
-        return NextResponse.json(
-          { error: 'Distribution list must have at least one email address' },
-          { status: 400 }
-        );
-      }
-      
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const invalidEmails = emails.filter(email => !emailRegex.test(email));
-      if (invalidEmails.length > 0) {
-        return NextResponse.json(
-          { error: `Invalid email addresses in distribution list: ${invalidEmails.join(', ')}` },
-          { status: 400 }
-        );
-      }
+    // Validate distribution list has at least one valid email (required)
+    const emails = distributionList.split(',').map((email: string) => email.trim()).filter((email: string) => email.length > 0);
+    if (emails.length === 0) {
+      return NextResponse.json(
+        { error: 'Distribution list must have at least one email address' },
+        { status: 400 }
+      );
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const invalidEmails = emails.filter(email => !emailRegex.test(email));
+    if (invalidEmails.length > 0) {
+      return NextResponse.json(
+        { error: `Invalid email addresses in distribution list: ${invalidEmails.join(', ')}` },
+        { status: 400 }
+      );
     }
 
-    // Validate customer notification required enum
-    if (customerNotificationRequired) {
-      const validNotifications = ['FORMAL', 'INFORMATIONAL', 'NOT_REQUIRED'];
-      if (!validNotifications.includes(customerNotificationRequired)) {
-        return NextResponse.json(
-          { error: `Invalid customer notification type. Must be one of: ${validNotifications.join(', ')}` },
-          { status: 400 }
-        );
-      }
+    // Validate customer notification required enum (required)
+    if (!customerNotificationRequired) {
+      return NextResponse.json(
+        { error: 'Customer notification type is required' },
+        { status: 400 }
+      );
+    }
+    const validNotifications = ['FORMAL', 'INFORMATIONAL', 'NOT_REQUIRED'];
+    if (!validNotifications.includes(customerNotificationRequired)) {
+      return NextResponse.json(
+        { error: `Invalid customer notification type. Must be one of: ${validNotifications.join(', ')}` },
+        { status: 400 }
+      );
     }
 
     // Validate response deadline enum
@@ -154,15 +156,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate implementation status enum
-    if (implementationStatus) {
-      const validStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE', 'VERIFIED'];
-      if (!validStatuses.includes(implementationStatus)) {
-        return NextResponse.json(
-          { error: `Invalid implementation status. Must be one of: ${validStatuses.join(', ')}` },
-          { status: 400 }
-        );
-      }
+    // Validate implementation status enum (required)
+    const validStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE', 'VERIFIED'];
+    if (!validStatuses.includes(implementationStatus)) {
+      return NextResponse.json(
+        { error: `Invalid implementation status. Must be one of: ${validStatuses.join(', ')}` },
+        { status: 400 }
+      );
     }
 
     // Validate dates
@@ -225,9 +225,9 @@ export async function POST(request: NextRequest) {
         verificationMethod,
         distributionList,
         internalStakeholders,
-        customerNotificationRequired: customerNotificationRequired || 'NOT_REQUIRED',
+        customerNotificationRequired,
         responseDeadline: responseDeadline || null,
-        implementationStatus: implementationStatus || 'NOT_STARTED',
+        implementationStatus,
         actualImplementationDate: actualImplementationDate ? new Date(actualImplementationDate) : null,
         acknowledgmentStatus,
         finalDocumentationSummary,

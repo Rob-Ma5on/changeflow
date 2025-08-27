@@ -131,7 +131,7 @@ export async function GET() {
           title: ecr.title,
           status: ecr.status,
           date: ecr.updatedAt.toISOString(),
-          user: ecr.requestor.name
+          user: ecr.submitter.name
         })),
         ...recentEcos.map(eco => ({
           id: eco.id,

@@ -83,10 +83,10 @@ export async function POST(request: NextRequest) {
       estimatedTotalCost,
     } = body;
 
-    // Validate required fields
-    if (!title || !description || !effectiveDate) {
+    // Validate ALL required fields for clean slate approach
+    if (!title || !description || !effectiveDate || !effectivityType || !materialDisposition) {
       return NextResponse.json(
-        { error: 'Required fields are missing: title, description, and effective date are required' },
+        { error: 'All required fields must be provided: title, description, effectiveDate, effectivityType, and materialDisposition are required' },
         { status: 400 }
       );
     }
@@ -100,37 +100,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate priority enum
-    if (priority) {
-      const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-      if (!validPriorities.includes(priority)) {
-        return NextResponse.json(
-          { error: `Invalid priority. Must be one of: ${validPriorities.join(', ')}` },
-          { status: 400 }
-        );
-      }
+    // Validate priority enum (required)
+    if (!priority) {
+      return NextResponse.json(
+        { error: 'Priority is required' },
+        { status: 400 }
+      );
+    }
+    const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+    if (!validPriorities.includes(priority)) {
+      return NextResponse.json(
+        { error: `Invalid priority. Must be one of: ${validPriorities.join(', ')}` },
+        { status: 400 }
+      );
     }
 
-    // Validate effectivity type enum
-    if (effectivityType) {
-      const validTypes = ['DATE_BASED', 'IMMEDIATE'];
-      if (!validTypes.includes(effectivityType)) {
-        return NextResponse.json(
-          { error: `Invalid effectivity type. Must be one of: ${validTypes.join(', ')}` },
-          { status: 400 }
-        );
-      }
+    // Validate effectivity type enum (required)
+    const validTypes = ['DATE_BASED', 'IMMEDIATE'];
+    if (!validTypes.includes(effectivityType)) {
+      return NextResponse.json(
+        { error: `Invalid effectivity type. Must be one of: ${validTypes.join(', ')}` },
+        { status: 400 }
+      );
     }
 
-    // Validate material disposition enum
-    if (materialDisposition) {
-      const validDispositions = ['USE_AS_IS', 'REWORK', 'SCRAP', 'RETURN_TO_VENDOR', 'SORT_INSPECT', 'NO_IMPACT'];
-      if (!validDispositions.includes(materialDisposition)) {
-        return NextResponse.json(
-          { error: `Invalid material disposition. Must be one of: ${validDispositions.join(', ')}` },
-          { status: 400 }
-        );
-      }
+    // Validate material disposition enum (required)
+    const validDispositions = ['USE_AS_IS', 'REWORK', 'SCRAP', 'RETURN_TO_VENDOR', 'SORT_INSPECT', 'NO_IMPACT'];
+    if (!validDispositions.includes(materialDisposition)) {
+      return NextResponse.json(
+        { error: `Invalid material disposition. Must be one of: ${validDispositions.join(', ')}` },
+        { status: 400 }
+      );
     }
 
     // Validate estimated cost is positive if provided
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
         organizationId,
         submitterId,
         assigneeId,
-        priority: priority || 'MEDIUM',
+        priority,
         implementationPlan,
         testingPlan,
         rollbackPlan,
@@ -190,8 +190,8 @@ export async function POST(request: NextRequest) {
         estimatedEffort,
         targetDate: targetDate ? new Date(targetDate) : null,
         effectiveDate: new Date(effectiveDate),
-        effectivityType: effectivityType || 'DATE_BASED',
-        materialDisposition: materialDisposition || 'NO_IMPACT',
+        effectivityType,
+        materialDisposition,
         documentUpdates,
         implementationTeam,
         inventoryImpact: inventoryImpact || false,

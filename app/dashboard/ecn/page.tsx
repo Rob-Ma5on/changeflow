@@ -6,7 +6,7 @@ import Link from 'next/link';
 import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
-import { exportToExcel, formatECNsForExport } from '@/components/export-utils';
+import { exportToExcel, formatECNsForExport, ExportButton } from '@/components/export-utils';
 import EntityCard from '@/components/entity-card';
 
 interface ECN {

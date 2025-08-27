@@ -60,22 +60,30 @@ interface ECRForExport {
   updatedAt?: string | Date;
 }
 
-// ECR-specific export format
-export const formatECRsForExport = (ecrs: ECRForExport[]) => {
+// ECR-specific export format with Phase 1 fields
+export const formatECRsForExport = (ecrs: any[]) => {
   return ecrs.map((ecr) => ({
     'ECR Number': ecr.ecrNumber || '',
     'Title': ecr.title || '',
     'Description': ecr.description || '',
+    'Business Justification': ecr.reason || '',
     'Priority': ecr.priority || '',
     'Status': ecr.status?.replace(/_/g, ' ') || '',
-    'Category': ecr.category || '',
-    'Impact Assessment': ecr.impactAssessment || '',
-    'Justification': ecr.justification || '',
+    'Reason for Change': ecr.reasonForChange || '',
+    'Customer Impact': ecr.customerImpact?.replace(/_/g, ' ') || '',
+    'Estimated Cost Range': ecr.estimatedCostRange?.replace(/_/g, ' ') || '',
+    'Target Implementation Date': ecr.targetImplementationDate ? new Date(ecr.targetImplementationDate).toLocaleDateString() : '',
+    'Stakeholders': ecr.stakeholders || '',
     'Submitter': ecr.submitter?.name || '',
     'Submitter Email': ecr.submitter?.email || '',
     'Assignee': ecr.assignee?.name || '',
     'Assignee Email': ecr.assignee?.email || '',
-    'Target Date': ecr.targetDate ? new Date(ecr.targetDate).toLocaleDateString() : '',
+    'Approver': ecr.approver?.name || '',
+    'Cost Impact': ecr.costImpact ? `$${Number(ecr.costImpact).toLocaleString()}` : '',
+    'Schedule Impact': ecr.scheduleImpact || '',
+    'Implementation Plan': ecr.implementationPlan || '',
+    'Affected Products': ecr.affectedProducts || '',
+    'Affected Documents': ecr.affectedDocuments || '',
     'Created Date': ecr.createdAt ? new Date(ecr.createdAt).toLocaleDateString() : '',
     'Updated Date': ecr.updatedAt ? new Date(ecr.updatedAt).toLocaleDateString() : ''
   }));
@@ -94,18 +102,32 @@ interface ECOForExport {
   completedAt?: string | Date;
 }
 
-// ECO-specific export format
-export const formatECOsForExport = (ecos: ECOForExport[]) => {
+// ECO-specific export format with Phase 1 fields
+export const formatECOsForExport = (ecos: any[]) => {
   return ecos.map((eco) => ({
     'ECO Number': eco.ecoNumber || '',
     'Title': eco.title || '',
+    'Description': eco.description || '',
     'Status': eco.status?.replace(/_/g, ' ') || '',
     'Priority': eco.priority || '',
-    'Linked ECR': eco.ecr?.ecrNumber || '',
-    'ECR Title': eco.ecr?.title || '',
-    'Bundled ECRs': eco.ecrs?.map((ecr) => ecr.ecrNumber).join(', ') || '',
+    'Effective Date': eco.effectiveDate ? new Date(eco.effectiveDate).toLocaleDateString() : '',
+    'Effectivity Type': eco.effectivityType?.replace(/_/g, ' ') || '',
+    'Material Disposition': eco.materialDisposition?.replace(/_/g, ' ') || '',
+    'Document Updates': eco.documentUpdates || '',
+    'Implementation Team': eco.implementationTeam || '',
+    'Inventory Impact': eco.inventoryImpact ? 'Yes' : 'No',
+    'Estimated Total Cost': eco.estimatedTotalCost ? `$${Number(eco.estimatedTotalCost).toLocaleString()}` : '',
+    'Bundled ECRs': eco.ecrs?.map((ecr: any) => ecr.ecrNumber).join(', ') || '',
+    'Submitter': eco.submitter?.name || '',
+    'Submitter Email': eco.submitter?.email || '',
     'Assignee': eco.assignee?.name || '',
     'Assignee Email': eco.assignee?.email || '',
+    'Approver': eco.approver?.name || '',
+    'Implementation Plan': eco.implementationPlan || '',
+    'Testing Plan': eco.testingPlan || '',
+    'Rollback Plan': eco.rollbackPlan || '',
+    'Resources Required': eco.resourcesRequired || '',
+    'Estimated Effort': eco.estimatedEffort || '',
     'Target Date': eco.targetDate ? new Date(eco.targetDate).toLocaleDateString() : '',
     'Created Date': eco.createdAt ? new Date(eco.createdAt).toLocaleDateString() : '',
     'Completed Date': eco.completedAt ? new Date(eco.completedAt).toLocaleDateString() : ''
@@ -133,22 +155,36 @@ interface ECNForExport {
   createdAt?: string | Date;
 }
 
-// ECN-specific export format
-export const formatECNsForExport = (ecns: ECNForExport[]) => {
+// ECN-specific export format with Phase 1 fields
+export const formatECNsForExport = (ecns: any[]) => {
   return ecns.map((ecn) => ({
     'ECN Number': ecn.ecnNumber || '',
     'Title': ecn.title || '',
     'Description': ecn.description || '',
     'Status': ecn.status?.replace(/_/g, ' ') || '',
+    'Distribution List': ecn.distributionList || '',
+    'Internal Stakeholders': ecn.internalStakeholders || '',
+    'Customer Notification Required': ecn.customerNotificationRequired?.replace(/_/g, ' ') || '',
+    'Response Deadline': ecn.responseDeadline?.replace(/_/g, ' ') || '',
+    'Implementation Status': ecn.implementationStatus?.replace(/_/g, ' ') || '',
+    'Actual Implementation Date': ecn.actualImplementationDate ? new Date(ecn.actualImplementationDate).toLocaleDateString() : '',
+    'Acknowledgment Status': ecn.acknowledgmentStatus || '',
+    'Final Documentation Summary': ecn.finalDocumentationSummary || '',
+    'Closure Approver': ecn.closureApprover || '',
+    'Closure Date': ecn.closureDate ? new Date(ecn.closureDate).toLocaleDateString() : '',
     'Linked ECO': ecn.eco?.ecoNumber || '',
     'ECO Title': ecn.eco?.title || '',
-    'Original ECR': ecn.eco?.ecr?.ecrNumber || '',
-    'ECR Title': ecn.eco?.ecr?.title || '',
-    'ECR Submitter': ecn.eco?.ecr?.submitter?.name || '',
+    'Original ECR': ecn.eco?.ecrs?.[0]?.ecrNumber || '',
+    'ECR Title': ecn.eco?.ecrs?.[0]?.title || '',
+    'ECR Submitter': ecn.eco?.ecrs?.[0]?.submitter?.name || '',
     'Submitter': ecn.submitter?.name || '',
     'Submitter Email': ecn.submitter?.email || '',
     'Assignee': ecn.assignee?.name || '',
     'Assignee Email': ecn.assignee?.email || '',
+    'Changes Implemented': ecn.changesImplemented || '',
+    'Affected Items': ecn.affectedItems || '',
+    'Disposition Instructions': ecn.dispositionInstructions || '',
+    'Verification Method': ecn.verificationMethod || '',
     'Effective Date': ecn.effectiveDate ? new Date(ecn.effectiveDate).toLocaleDateString() : '',
     'Distributed Date': ecn.distributedAt ? new Date(ecn.distributedAt).toLocaleDateString() : '',
     'Created Date': ecn.createdAt ? new Date(ecn.createdAt).toLocaleDateString() : ''

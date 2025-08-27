@@ -10,7 +10,7 @@ import EntityCard from '@/components/entity-card';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
 import SkeletonCard from '@/components/skeleton-card';
 import EmptyState, { ECREmptyState, FilterEmptyState } from '@/components/empty-state';
-import { exportToExcel, formatECRsForExport } from '@/components/export-utils';
+import { exportToExcel, formatECRsForExport, ExportButton } from '@/components/export-utils';
 
 interface ECR {
   id: string;
@@ -384,6 +384,11 @@ export default function ECRPage() {
                 <span className="sm:hidden">Bundle ({selectedApprovedECRs.length})</span>
               </button>
             )}
+            <ExportButton
+              onExport={handleExport}
+              disabled={sortedECRs.length === 0}
+              isExporting={isExporting}
+            />
             <Link
               href="/dashboard/ecr/new"
               className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

@@ -81,14 +81,14 @@ export async function POST(request: NextRequest) {
           submitterId,
           assigneeId: ecr.assigneeId || ecr.submitterId, // Assign to ECR assignee or submitter
           status: 'DRAFT', // Start as draft (will map to BACKLOG in Kanban)
-          priority: ecr.urgency as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', // Map urgency to priority
+          priority: ecr.priority, // Use ECR priority directly
           implementationPlan: ecr.implementationPlan,
-          // Set target date based on urgency
+          // Set target date based on priority
           targetDate: (() => {
             const now = new Date();
-            const daysToAdd = ecr.urgency === 'CRITICAL' ? 14 : 
-                             ecr.urgency === 'HIGH' ? 30 : 
-                             ecr.urgency === 'MEDIUM' ? 60 : 90;
+            const daysToAdd = ecr.priority === 'CRITICAL' ? 14 : 
+                             ecr.priority === 'HIGH' ? 30 : 
+                             ecr.priority === 'MEDIUM' ? 60 : 90;
             return new Date(now.setDate(now.getDate() + daysToAdd));
           })()
         },
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
               title: true,
               description: true,
               reason: true,
-              urgency: true,
+              priority: true,
               submitter: { select: { name: true } }
             } 
           },

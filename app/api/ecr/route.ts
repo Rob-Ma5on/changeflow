@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
       title,
       description,
       reason,
-      urgency,
       priority,
       reasonForChange,
       customerImpact,
@@ -90,18 +89,18 @@ export async function POST(request: NextRequest) {
       implementationPlan,
     } = body;
 
-    // Validate required fields
-    if (!title || !description || !reason) {
+    // Validate ALL required fields for clean slate approach
+    if (!title || !description || !reason || !priority || !reasonForChange || !customerImpact) {
       return NextResponse.json(
-        { error: 'Required fields are missing: title, description, and business justification are required' },
+        { error: 'All required fields must be provided: title, description, reason, priority, reasonForChange, and customerImpact are required' },
         { status: 400 }
       );
     }
 
-    // Validate priority is required for Phase 1
-    if (!priority) {
+    // Validate reasonForChange is not empty
+    if (!reasonForChange.trim()) {
       return NextResponse.json(
-        { error: 'Priority is required' },
+        { error: 'Reason for change cannot be empty' },
         { status: 400 }
       );
     }
@@ -115,15 +114,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate customer impact enum
-    if (customerImpact) {
-      const validImpacts = ['DIRECT_IMPACT', 'INDIRECT_IMPACT', 'NO_IMPACT'];
-      if (!validImpacts.includes(customerImpact)) {
-        return NextResponse.json(
-          { error: `Invalid customer impact. Must be one of: ${validImpacts.join(', ')}` },
-          { status: 400 }
-        );
-      }
+    // Validate customer impact enum (required)
+    const validImpacts = ['DIRECT_IMPACT', 'INDIRECT_IMPACT', 'NO_IMPACT'];
+    if (!validImpacts.includes(customerImpact)) {
+      return NextResponse.json(
+        { error: `Invalid customer impact. Must be one of: ${validImpacts.join(', ')}` },
+        { status: 400 }
+      );
     }
 
     // Validate estimated cost range enum
@@ -204,10 +201,9 @@ export async function POST(request: NextRequest) {
         title,
         description,
         reason,
-        urgency: urgency || priority || 'MEDIUM',
         priority,
         reasonForChange,
-        customerImpact: customerImpact || 'NO_IMPACT',
+        customerImpact,
         estimatedCostRange,
         targetImplementationDate: targetImplementationDate ? new Date(targetImplementationDate) : null,
         stakeholders,

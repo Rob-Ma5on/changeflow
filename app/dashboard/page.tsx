@@ -3,6 +3,26 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { Pie, Doughnut, Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement
+);
 
 interface DashboardStats {
   totalEcrs: number;
@@ -10,15 +30,51 @@ interface DashboardStats {
   ecosInProgress: number;
   pendingEcns: number;
   completedThisMonth: number;
+  priorityBreakdown: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+  customerImpactSummary: {
+    directImpact: number;
+    indirectImpact: number;
+    noImpact: number;
+  };
+  implementationStatus: {
+    notStarted: number;
+    inProgress: number;
+    complete: number;
+    verified: number;
+  };
+  thisWeekTargets: Array<{
+    id: string;
+    type: 'ECR' | 'ECO';
+    number: string;
+    title: string;
+    targetDate: string;
+    priority: string;
+    assignee?: string;
+  }>;
   recentActivity: Array<{
     id: string;
     type: 'ECR' | 'ECO' | 'ECN';
     number: string;
     title: string;
     status: string;
+    priority?: string;
+    customerImpact?: string;
     date: string;
     user: string;
   }>;
+  myItems: {
+    assigned: number;
+    submitted: number;
+    needsApproval: number;
+  };
+  highPriorityItems: number;
+  customerImpactItems: number;
+  dueThisWeek: number;
 }
 
 export default function DashboardPage() {
@@ -29,7 +85,15 @@ export default function DashboardPage() {
     ecosInProgress: 0,
     pendingEcns: 0,
     completedThisMonth: 0,
-    recentActivity: []
+    priorityBreakdown: { critical: 0, high: 0, medium: 0, low: 0 },
+    customerImpactSummary: { directImpact: 0, indirectImpact: 0, noImpact: 0 },
+    implementationStatus: { notStarted: 0, inProgress: 0, complete: 0, verified: 0 },
+    thisWeekTargets: [],
+    recentActivity: [],
+    myItems: { assigned: 0, submitted: 0, needsApproval: 0 },
+    highPriorityItems: 0,
+    customerImpactItems: 0,
+    dueThisWeek: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +113,15 @@ export default function DashboardPage() {
             ecosInProgress: 0,
             pendingEcns: 0,
             completedThisMonth: 0,
-            recentActivity: []
+            priorityBreakdown: { critical: 0, high: 0, medium: 0, low: 0 },
+            customerImpactSummary: { directImpact: 0, indirectImpact: 0, noImpact: 0 },
+            implementationStatus: { notStarted: 0, inProgress: 0, complete: 0, verified: 0 },
+            thisWeekTargets: [],
+            recentActivity: [],
+            myItems: { assigned: 0, submitted: 0, needsApproval: 0 },
+            highPriorityItems: 0,
+            customerImpactItems: 0,
+            dueThisWeek: 0
           });
         }
       } catch (error) {
@@ -61,7 +133,15 @@ export default function DashboardPage() {
           ecosInProgress: 0,
           pendingEcns: 0,
           completedThisMonth: 0,
-          recentActivity: []
+          priorityBreakdown: { critical: 0, high: 0, medium: 0, low: 0 },
+          customerImpactSummary: { directImpact: 0, indirectImpact: 0, noImpact: 0 },
+          implementationStatus: { notStarted: 0, inProgress: 0, complete: 0, verified: 0 },
+          thisWeekTargets: [],
+          recentActivity: [],
+          myItems: { assigned: 0, submitted: 0, needsApproval: 0 },
+          highPriorityItems: 0,
+          customerImpactItems: 0,
+          dueThisWeek: 0
         });
       } finally {
         setLoading(false);
@@ -114,6 +194,111 @@ export default function DashboardPage() {
           <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
         );
     }
+  };
+
+  // Chart configurations
+  const priorityChartData = {
+    labels: ['Critical', 'High', 'Medium', 'Low'],
+    datasets: [{
+      data: [
+        stats.priorityBreakdown.critical,
+        stats.priorityBreakdown.high,
+        stats.priorityBreakdown.medium,
+        stats.priorityBreakdown.low
+      ],
+      backgroundColor: ['#dc2626', '#ea580c', '#ca8a04', '#16a34a'],
+      borderWidth: 2,
+      borderColor: '#ffffff'
+    }]
+  };
+
+  const customerImpactChartData = {
+    labels: ['Direct Impact', 'Indirect Impact', 'No Impact'],
+    datasets: [{
+      data: [
+        stats.customerImpactSummary.directImpact,
+        stats.customerImpactSummary.indirectImpact,
+        stats.customerImpactSummary.noImpact
+      ],
+      backgroundColor: ['#dc2626', '#ea580c', '#16a34a'],
+      borderWidth: 2,
+      borderColor: '#ffffff'
+    }]
+  };
+
+  const implementationStatusChartData = {
+    labels: ['Not Started', 'In Progress', 'Complete', 'Verified'],
+    datasets: [{
+      label: 'ECN Implementation Status',
+      data: [
+        stats.implementationStatus.notStarted,
+        stats.implementationStatus.inProgress,
+        stats.implementationStatus.complete,
+        stats.implementationStatus.verified
+      ],
+      backgroundColor: ['#6b7280', '#f59e0b', '#3b82f6', '#10b981'],
+      borderWidth: 1,
+      borderColor: '#ffffff'
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          padding: 15,
+          usePointStyle: true,
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: '#374151',
+        borderWidth: 1
+      }
+    }
+  };
+
+  const barChartOptions = {
+    ...chartOptions,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1
+        }
+      }
+    }
+  };
+
+  // Quick filter functions
+  const getQuickFilterUrl = (filter: string) => {
+    switch (filter) {
+      case 'my-items':
+        return `/dashboard/ecr?assignee=${session?.user?.id}`;
+      case 'high-priority':
+        return `/dashboard/ecr?priority=CRITICAL,HIGH`;
+      case 'customer-impact':
+        return `/dashboard/ecr?customerImpact=DIRECT_IMPACT`;
+      case 'due-this-week':
+        return `/dashboard/ecr?dateRange=this-week`;
+      default:
+        return '/dashboard';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   if (loading) {
@@ -200,7 +385,152 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Quick Filters */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Filters</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link
+            href={getQuickFilterUrl('my-items')}
+            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+          >
+            <div>
+              <p className="font-medium text-gray-900">My Items</p>
+              <p className="text-sm text-gray-500">Assigned to me</p>
+            </div>
+            <span className="bg-blue-100 text-blue-800 text-lg font-semibold px-3 py-1 rounded-full">
+              {stats.myItems.assigned}
+            </span>
+          </Link>
+          
+          <Link
+            href={getQuickFilterUrl('high-priority')}
+            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors"
+          >
+            <div>
+              <p className="font-medium text-gray-900">High Priority</p>
+              <p className="text-sm text-gray-500">Critical & High</p>
+            </div>
+            <span className="bg-red-100 text-red-800 text-lg font-semibold px-3 py-1 rounded-full">
+              {stats.highPriorityItems}
+            </span>
+          </Link>
+          
+          <Link
+            href={getQuickFilterUrl('customer-impact')}
+            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-colors"
+          >
+            <div>
+              <p className="font-medium text-gray-900">Customer Impact</p>
+              <p className="text-sm text-gray-500">Direct impact items</p>
+            </div>
+            <span className="bg-orange-100 text-orange-800 text-lg font-semibold px-3 py-1 rounded-full">
+              {stats.customerImpactItems}
+            </span>
+          </Link>
+          
+          <Link
+            href={getQuickFilterUrl('due-this-week')}
+            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
+          >
+            <div>
+              <p className="font-medium text-gray-900">Due This Week</p>
+              <p className="text-sm text-gray-500">Target dates</p>
+            </div>
+            <span className="bg-yellow-100 text-yellow-800 text-lg font-semibold px-3 py-1 rounded-full">
+              {stats.dueThisWeek}
+            </span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Phase 1 Metrics Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Priority Breakdown Chart */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Priority Breakdown</h3>
+          <div className="h-64">
+            <Pie data={priorityChartData} options={chartOptions} />
+          </div>
+          <div className="mt-4 text-sm text-gray-600">
+            Open ECRs by priority level
+          </div>
+        </div>
+
+        {/* Customer Impact Summary */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Customer Impact</h3>
+          <div className="h-64">
+            <Doughnut data={customerImpactChartData} options={chartOptions} />
+          </div>
+          <div className="mt-4 text-sm text-gray-600">
+            Distribution of customer impact levels
+          </div>
+        </div>
+
+        {/* Implementation Status Chart */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">ECN Implementation Status</h3>
+          <div className="h-64">
+            <Bar data={implementationStatusChartData} options={barChartOptions} />
+          </div>
+          <div className="mt-4 text-sm text-gray-600">
+            Current status of ECN implementations
+          </div>
+        </div>
+      </div>
+
+      {/* This Week's Targets */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900">This Week's Target Dates</h3>
+        </div>
+        <div className="p-6">
+          {stats.thisWeekTargets.length > 0 ? (
+            <div className="space-y-4">
+              {stats.thisWeekTargets.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        item.type === 'ECR' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                      }`}>
+                        {item.type}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{item.number}</p>
+                      <p className="text-sm text-gray-600">{item.title}</p>
+                      {item.assignee && (
+                        <p className="text-xs text-gray-500">Assigned to: {item.assignee}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">{formatDate(item.targetDate)}</p>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      item.priority === 'CRITICAL' ? 'bg-red-100 text-red-800' :
+                      item.priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                      item.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {item.priority}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7a2 2 0 012-2h4a2 2 0 012 2v0M8 7v8a2 2 0 002 2h4a2 2 0 002-2V7M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2" />
+              </svg>
+              <p>No target dates scheduled for this week</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Enhanced Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Link href="/dashboard/ecr" className="block">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
@@ -330,7 +660,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Enhanced Recent Activity */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
@@ -351,30 +681,46 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
+                        <div>
                           <div className="text-sm">
-                            <Link
-                              href={`/dashboard/${activity.type.toLowerCase()}`}
-                              className="font-medium text-gray-900 hover:text-blue-600"
-                            >
+                            <Link href={`/dashboard/${activity.type.toLowerCase()}/${activity.number}`} className="font-medium text-gray-900 hover:text-blue-600">
                               {activity.number}
                             </Link>
                           </div>
-                          <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                            {new Date(activity.date).toLocaleDateString()}
-                          </div>
+                          <p className="mt-0.5 text-sm text-gray-500">
+                            {activity.title}
+                          </p>
                         </div>
-                        <div className="mt-1">
-                          <p className="text-sm text-gray-700">{activity.title}</p>
-                          <div className="mt-2 flex items-center space-x-2">
-                            <span 
-                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                              style={getStatusStyle(activity.status)}
-                            >
-                              {activity.status.replace(/_/g, ' ')}
+                        <div className="mt-2 flex items-center space-x-2">
+                          <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            style={getStatusStyle(activity.status)}
+                          >
+                            {activity.status.replace(/_/g, ' ')}
+                          </span>
+                          {activity.priority && (
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              activity.priority === 'CRITICAL' ? 'bg-red-100 text-red-800' :
+                              activity.priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                              activity.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {activity.priority}
                             </span>
-                            <span className="text-xs text-gray-500">by {activity.user}</span>
-                          </div>
+                          )}
+                          {activity.customerImpact && (
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              activity.customerImpact === 'DIRECT_IMPACT' ? 'bg-red-100 text-red-800' :
+                              activity.customerImpact === 'INDIRECT_IMPACT' ? 'bg-orange-100 text-orange-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {activity.customerImpact.replace(/_/g, ' ')}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-500">by {activity.user}</span>
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          {new Date(activity.date).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -383,6 +729,14 @@ export default function DashboardPage() {
               ))}
             </ul>
           </div>
+          {stats.recentActivity.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p>No recent activity</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

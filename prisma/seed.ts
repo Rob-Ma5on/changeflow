@@ -80,7 +80,9 @@ async function main() {
       title: 'Improve Widget Assembly Process',
       description: 'Current widget assembly process has inefficiencies that result in longer cycle times and potential quality issues.',
       reason: 'Cost reduction and quality improvement initiative',
-      urgency: 'HIGH',
+      priority: 'HIGH',
+      reasonForChange: 'Cost reduction, Quality improvement',
+      customerImpact: 'INDIRECT_IMPACT',
       status: 'SUBMITTED',
       organizationId: organization.id,
       submitterId: engineer1.id,
@@ -92,6 +94,9 @@ async function main() {
       costImpact: 15000.00,
       scheduleImpact: '2 weeks implementation timeline',
       implementationPlan: 'Phase 1: Tool redesign, Phase 2: Process validation, Phase 3: Training rollout',
+      estimatedCostRange: 'FROM_10K_TO_50K',
+      targetImplementationDate: new Date('2024-03-15T00:00:00Z'),
+      stakeholders: 'Manufacturing Team, Quality Assurance, Engineering',
     },
   });
 
@@ -104,7 +109,9 @@ async function main() {
       title: 'Update Material Specification for Component X',
       description: 'Component X material specification needs update to address supplier change and improve durability.',
       reason: 'Supplier discontinuation and performance enhancement',
-      urgency: 'MEDIUM',
+      priority: 'MEDIUM',
+      reasonForChange: 'Supplier change, Performance enhancement',
+      customerImpact: 'DIRECT_IMPACT',
       status: 'APPROVED',
       organizationId: organization.id,
       submitterId: engineer2.id,
@@ -117,6 +124,9 @@ async function main() {
       costImpact: 8500.00,
       scheduleImpact: '1 week for documentation updates',
       implementationPlan: 'Update specifications, validate with new supplier, update BOMs',
+      estimatedCostRange: 'FROM_1K_TO_10K',
+      targetImplementationDate: new Date('2024-02-29T00:00:00Z'),
+      stakeholders: 'Procurement, Engineering, Quality Control',
     },
   });
   console.log('✓ Created sample ECRs');
@@ -144,6 +154,13 @@ async function main() {
       rollbackPlan: 'Maintain inventory of old materials for 30 days, documented reversion procedure',
       resourcesRequired: 'Materials engineer (40hrs), Lab testing (20hrs), Procurement coordination',
       estimatedEffort: '80 hours total effort',
+      effectiveDate: new Date('2024-02-15T00:00:00Z'),
+      effectivityType: 'DATE_BASED',
+      materialDisposition: 'USE_AS_IS',
+      documentUpdates: 'Material specifications, BOMs, Work instructions',
+      implementationTeam: 'Engineering, Procurement, Quality',
+      inventoryImpact: true,
+      estimatedTotalCost: 8500.00,
     },
   });
   console.log('✓ Created sample ECO');
@@ -175,6 +192,15 @@ async function main() {
       affectedItems: 'Component X (Part# CX-12345), Product Line C assemblies',
       dispositionInstructions: 'Use existing inventory until depleted, new material effective for all new orders',
       verificationMethod: 'Material certification review, incoming inspection updated per new spec',
+      distributionList: 'engineering@acme-mfg.com, quality@acme-mfg.com, procurement@acme-mfg.com',
+      internalStakeholders: 'Engineering Team, Quality Assurance, Manufacturing',
+      customerNotificationRequired: 'INFORMATIONAL',
+      responseDeadline: 'DAYS_5',
+      implementationStatus: 'COMPLETE',
+      actualImplementationDate: new Date('2024-02-01T00:00:00Z'),
+      acknowledgmentStatus: 'Acknowledged',
+      finalDocumentationSummary: 'All documentation updated and distributed. Material transition completed.',
+      closureApprover: 'Quality Manager',
     },
   });
   console.log('✓ Created sample ECN');
