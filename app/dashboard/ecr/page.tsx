@@ -18,6 +18,10 @@ interface ECR {
   title: string;
   status: string;
   urgency: string;
+  priority: string;
+  customerImpact: string;
+  estimatedCostRange?: string;
+  targetImplementationDate?: string;
   submitter: { id: string; name: string; email: string };
   assignee?: { id: string; name: string; email: string };
   approver?: { id: string; name: string; email: string };
@@ -153,9 +157,10 @@ export default function ECRPage() {
       ecr.title.toLowerCase().includes(filters.search.toLowerCase()) ||
       ecr.ecrNumber.toLowerCase().includes(filters.search.toLowerCase());
     const matchesStatus = !filters.status || ecr.status === filters.status;
-    const matchesPriority = !filters.priority || ecr.urgency === filters.priority;
+    const matchesPriority = !filters.priority || ecr.priority === filters.priority;
+    const matchesCustomerImpact = !filters.category || ecr.customerImpact === filters.category;
     
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus && matchesPriority && matchesCustomerImpact;
   });
 
   const approvedECRs = filteredECRs.filter(ecr => ecr.status === 'APPROVED');
@@ -283,6 +288,19 @@ export default function ECRPage() {
     { value: 'CANCELLED', label: 'Cancelled' }
   ];
 
+  const priorityOptions = [
+    { value: 'CRITICAL', label: 'Critical' },
+    { value: 'HIGH', label: 'High' },
+    { value: 'MEDIUM', label: 'Medium' },
+    { value: 'LOW', label: 'Low' }
+  ];
+
+  const customerImpactOptions = [
+    { value: 'DIRECT_IMPACT', label: 'Direct Impact' },
+    { value: 'INDIRECT_IMPACT', label: 'Indirect Impact' },
+    { value: 'NO_IMPACT', label: 'No Impact' }
+  ];
+
   const kanbanColumns = [
     { id: 'DRAFT', title: 'Draft', status: ['DRAFT'] },
     { id: 'REVIEW', title: 'Under Review', status: ['SUBMITTED', 'UNDER_REVIEW'] },
@@ -385,6 +403,11 @@ export default function ECRPage() {
         filters={filters}
         onFiltersChange={setFilters}
         statusOptions={statusOptions}
+        priorityOptions={priorityOptions}
+        categoryOptions={customerImpactOptions}
+        showPriority={true}
+        showCategory={true}
+        categoryLabel="Customer Impact"
         onExport={handleExport}
         exportDisabled={sortedECRs.length === 0}
         isExporting={isExporting}
@@ -494,9 +517,16 @@ export default function ECRPage() {
                   />
                   <ColumnHeader
                     title="Priority"
-                    sortKey="urgency"
+                    sortKey="priority"
                     currentSort={sortConfig}
                     onSort={handleSort}
+                  />
+                  <ColumnHeader
+                    title="Customer Impact"
+                    sortKey="customerImpact"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                    className="hidden md:table-cell"
                   />
                   <ColumnHeader
                     title="Status"
@@ -505,15 +535,15 @@ export default function ECRPage() {
                     onSort={handleSort}
                   />
                   <ColumnHeader
-                    title="Requestor"
-                    sortKey="submitter"
+                    title="Cost Range"
+                    sortKey="estimatedCostRange"
                     currentSort={sortConfig}
                     onSort={handleSort}
-                    className="hidden md:table-cell"
+                    className="hidden lg:table-cell"
                   />
                   <ColumnHeader
-                    title="Estimated Cost"
-                    sortKey="costImpact"
+                    title="Target Date"
+                    sortKey="targetImplementationDate"
                     currentSort={sortConfig}
                     onSort={handleSort}
                     className="hidden lg:table-cell"
@@ -556,10 +586,23 @@ export default function ECRPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span 
-                        className="px-2 py-1 text-xs font-medium rounded-full"
-                        style={getUrgencyStyle(ecr.urgency)}
+                        className={`px-2 py-1 text-xs font-medium rounded-full text-white ${
+                          ecr.priority === 'CRITICAL' ? 'bg-red-500' :
+                          ecr.priority === 'HIGH' ? 'bg-orange-500' :
+                          ecr.priority === 'MEDIUM' ? 'bg-yellow-500' :
+                          'bg-green-500'
+                        }`}
                       >
-                        {ecr.urgency}
+                        {ecr.priority}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        ecr.customerImpact === 'DIRECT_IMPACT' ? 'bg-red-100 text-red-800' :
+                        ecr.customerImpact === 'INDIRECT_IMPACT' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {ecr.customerImpact?.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -567,11 +610,15 @@ export default function ECRPage() {
                         {getStatusLabel(ecr.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
-                      {ecr.submitter.name}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      {ecr.estimatedCostRange ? (
+                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                          {ecr.estimatedCostRange.replace(/_/g, ' ').replace('FROM ', '$').replace('TO', '-$').replace('UNDER', '<$').replace('OVER', '>$')}
+                        </span>
+                      ) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
-                      {formatCurrency(ecr.costImpact)}
+                      {ecr.targetImplementationDate ? formatDate(ecr.targetImplementationDate) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                       {formatDate(ecr.createdAt)}

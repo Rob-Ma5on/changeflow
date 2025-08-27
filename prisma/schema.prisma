@@ -64,13 +64,19 @@ model ECR {
   affectedProducts   String?
   affectedDocuments  String?
   costImpact         Decimal?
-  scheduleImpact     String?
-  implementationPlan String?
-  approver           User?        @relation("ECRApprover", fields: [approverId], references: [id])
-  assignee           User?        @relation("ECRAssignee", fields: [assigneeId], references: [id])
-  eco                ECO?         @relation(fields: [ecoId], references: [id])
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submitter          User         @relation("ECRSubmitter", fields: [submitterId], references: [id])
+  scheduleImpact            String?
+  implementationPlan        String?
+  priority                  ECRPriority             @default(MEDIUM)
+  reasonForChange           String?
+  customerImpact            CustomerImpact          @default(NO_IMPACT)
+  estimatedCostRange        EstimatedCostRange?
+  targetImplementationDate  DateTime?
+  stakeholders              String?
+  approver                  User?                   @relation("ECRApprover", fields: [approverId], references: [id])
+  assignee                  User?                   @relation("ECRAssignee", fields: [assigneeId], references: [id])
+  eco                       ECO?                    @relation(fields: [ecoId], references: [id])
+  organization              Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter                 User                    @relation("ECRSubmitter", fields: [submitterId], references: [id])
 
   @@unique([ecrNumber, organizationId])
   @@map("ecrs")
@@ -95,15 +101,22 @@ model ECO {
   implementationPlan String?
   testingPlan        String?
   rollbackPlan       String?
-  resourcesRequired  String?
-  estimatedEffort    String?
-  targetDate         DateTime?
-  ecns               ECN[]
-  ecrs               ECR[]        // Multiple ECRs can be bundled into one ECO
-  approver           User?        @relation("ECOApprover", fields: [approverId], references: [id])
-  assignee           User?        @relation("ECOAssignee", fields: [assigneeId], references: [id])
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submitter          User         @relation("ECOSubmitter", fields: [submitterId], references: [id])
+  resourcesRequired     String?
+  estimatedEffort       String?
+  targetDate            DateTime?
+  effectiveDate         DateTime?
+  effectivityType       EffectivityType         @default(DATE_BASED)
+  materialDisposition   MaterialDisposition     @default(NO_IMPACT)
+  documentUpdates       String?
+  implementationTeam    String?
+  inventoryImpact       Boolean                 @default(false)
+  estimatedTotalCost    Decimal?
+  ecns                  ECN[]
+  ecrs                  ECR[]                   // Multiple ECRs can be bundled into one ECO
+  approver              User?                   @relation("ECOApprover", fields: [approverId], references: [id])
+  assignee              User?                   @relation("ECOAssignee", fields: [assigneeId], references: [id])
+  organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter             User                    @relation("ECOSubmitter", fields: [submitterId], references: [id])
 
   @@unique([ecoNumber, organizationId])
   @@map("ecos")
@@ -124,16 +137,83 @@ model ECN {
   createdAt               DateTime     @default(now())
   updatedAt               DateTime     @updatedAt
   changesImplemented      String?
-  affectedItems           String?
-  dispositionInstructions String?
-  verificationMethod      String?
-  assignee                User?        @relation("ECNAssignee", fields: [assigneeId], references: [id])
-  eco                     ECO?         @relation(fields: [ecoId], references: [id])
-  organization            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submitter               User         @relation("ECNSubmitter", fields: [submitterId], references: [id])
+  affectedItems                 String?
+  dispositionInstructions       String?
+  verificationMethod            String?
+  distributionList              String?
+  internalStakeholders          String?
+  customerNotificationRequired  CustomerNotificationRequired    @default(NOT_REQUIRED)
+  notificationMethod            String                          @default("EMAIL")
+  responseDeadline              ResponseDeadline?
+  implementationStatus          ImplementationStatus            @default(NOT_STARTED)
+  actualImplementationDate      DateTime?
+  finalDocumentationSummary     String?
+  closureApprover               String?
+  closureDate                   DateTime?
+  acknowledgmentStatus          String?
+  assignee                      User?                           @relation("ECNAssignee", fields: [assigneeId], references: [id])
+  eco                           ECO?                            @relation(fields: [ecoId], references: [id])
+  organization                  Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter                     User                            @relation("ECNSubmitter", fields: [submitterId], references: [id])
 
   @@unique([ecnNumber, organizationId])
   @@map("ecns")
+}
+
+enum ECRPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum CustomerImpact {
+  DIRECT_IMPACT
+  INDIRECT_IMPACT
+  NO_IMPACT
+}
+
+enum EstimatedCostRange {
+  UNDER_1K
+  FROM_1K_TO_10K
+  FROM_10K_TO_50K
+  FROM_50K_TO_100K
+  OVER_100K
+}
+
+enum EffectivityType {
+  DATE_BASED
+  IMMEDIATE
+}
+
+enum MaterialDisposition {
+  USE_AS_IS
+  REWORK
+  SCRAP
+  RETURN_TO_VENDOR
+  SORT_INSPECT
+  NO_IMPACT
+}
+
+enum CustomerNotificationRequired {
+  FORMAL
+  INFORMATIONAL
+  NOT_REQUIRED
+}
+
+enum ResponseDeadline {
+  HOURS_24
+  HOURS_48
+  DAYS_5
+  DAYS_10
+  DAYS_30
+}
+
+enum ImplementationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+  VERIFIED
 }
 
 enum UserRole {

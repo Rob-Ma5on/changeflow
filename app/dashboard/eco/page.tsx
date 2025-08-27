@@ -16,6 +16,11 @@ interface ECO {
   title: string;
   status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'BACKLOG' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED' | 'CANCELLED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  effectiveDate: string;
+  materialDisposition: string;
+  estimatedTotalCost?: number;
+  inventoryImpact: boolean;
+  effectivityType?: string;
   submitter?: {
     id: string;
     name: string;
@@ -440,8 +445,9 @@ export default function ECOPage() {
     const matchesStatus = !filters.status || eco.status === filters.status;
     const matchesPriority = !filters.priority || eco.priority === filters.priority;
     const matchesAssignee = !filters.assignee || eco.assignee?.id === filters.assignee;
+    const matchesMaterialDisposition = !filters.category || eco.materialDisposition === filters.category;
     
-    return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
+    return matchesSearch && matchesStatus && matchesPriority && matchesAssignee && matchesMaterialDisposition;
   });
 
   const handleSort = (key: string) => {
@@ -478,6 +484,20 @@ export default function ECOPage() {
     { value: 'REVIEW', label: 'Review' },
     { value: 'COMPLETED', label: 'Completed' },
     { value: 'CANCELLED', label: 'Cancelled' }
+  ];
+
+  const materialDispositionOptions = [
+    { value: 'NO_IMPACT', label: 'No Impact' },
+    { value: 'USE_AS_IS', label: 'Use As Is' },
+    { value: 'REWORK', label: 'Rework' },
+    { value: 'SCRAP', label: 'Scrap' },
+    { value: 'RETURN_TO_VENDOR', label: 'Return to Vendor' },
+    { value: 'SORT_INSPECT', label: 'Sort & Inspect' }
+  ];
+
+  const effectivityTypeOptions = [
+    { value: 'DATE_BASED', label: 'Date Based' },
+    { value: 'IMMEDIATE', label: 'Immediate' }
   ];
 
   const assigneeOptions = ecos.reduce((acc, eco) => {
@@ -562,12 +582,15 @@ export default function ECOPage() {
               <span className="hidden sm:inline">Convert ECR to ECO</span>
               <span className="sm:hidden">Convert</span>
             </Link>
-            <button className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+            <Link
+              href="/dashboard/eco/new"
+              className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+            >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               New ECO
-            </button>
+            </Link>
           </div>
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         </div>
@@ -579,7 +602,10 @@ export default function ECOPage() {
         onFiltersChange={setFilters}
         statusOptions={statusOptions}
         assigneeOptions={assigneeOptions}
+        categoryOptions={materialDispositionOptions}
         showAssignee={true}
+        showCategory={true}
+        categoryLabel="Material Disposition"
         onExport={handleExport}
         exportDisabled={sortedEcos.length === 0}
         isExporting={isExporting}
@@ -631,22 +657,29 @@ export default function ECOPage() {
                     onSort={handleSort}
                   />
                   <ColumnHeader
-                    title="Assignee"
-                    sortKey="assignee"
+                    title="Effective Date"
+                    sortKey="effectiveDate"
                     currentSort={sortConfig}
                     onSort={handleSort}
                     className="hidden md:table-cell"
                   />
                   <ColumnHeader
-                    title="Target Date"
-                    sortKey="targetDate"
+                    title="Material Disposition"
+                    sortKey="materialDisposition"
                     currentSort={sortConfig}
                     onSort={handleSort}
                     className="hidden lg:table-cell"
                   />
                   <ColumnHeader
-                    title="Created Date"
-                    sortKey="createdAt"
+                    title="Estimated Cost"
+                    sortKey="estimatedTotalCost"
+                    currentSort={sortConfig}
+                    onSort={handleSort}
+                    className="hidden lg:table-cell"
+                  />
+                  <ColumnHeader
+                    title="Inventory Impact"
+                    sortKey="inventoryImpact"
                     currentSort={sortConfig}
                     onSort={handleSort}
                     className="hidden sm:table-cell"
@@ -694,15 +727,35 @@ export default function ECOPage() {
                         {eco.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
-                      {eco.assignee ? eco.assignee.name : 'Unassigned'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                      {eco.targetDate ? new Date(eco.targetDate).toLocaleDateString('en-US', {
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                      {new Date(eco.effectiveDate).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric'
-                      }) : '-'}
+                      })}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        eco.materialDisposition === 'SCRAP' ? 'bg-red-100 text-red-800' :
+                        eco.materialDisposition === 'REWORK' ? 'bg-yellow-100 text-yellow-800' :
+                        eco.materialDisposition === 'NO_IMPACT' ? 'bg-green-100 text-green-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {eco.materialDisposition?.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      {eco.estimatedTotalCost ? 
+                        `$${eco.estimatedTotalCost.toLocaleString()}` : 
+                        '-'
+                      }
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        eco.inventoryImpact ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                      }`}>
+                        {eco.inventoryImpact ? 'Yes' : 'No'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                       {new Date(eco.createdAt).toLocaleDateString('en-US', {

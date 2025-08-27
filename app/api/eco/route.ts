@@ -74,13 +74,97 @@ export async function POST(request: NextRequest) {
       resourcesRequired,
       estimatedEffort,
       targetDate,
+      effectiveDate,
+      effectivityType,
+      materialDisposition,
+      documentUpdates,
+      implementationTeam,
+      inventoryImpact,
+      estimatedTotalCost,
     } = body;
 
-    if (!title || !description) {
+    // Validate required fields
+    if (!title || !description || !effectiveDate) {
       return NextResponse.json(
-        { error: 'Required fields are missing' },
+        { error: 'Required fields are missing: title, description, and effective date are required' },
         { status: 400 }
       );
+    }
+
+    // Validate effective date format and future date requirement
+    const effective = new Date(effectiveDate);
+    if (isNaN(effective.getTime())) {
+      return NextResponse.json(
+        { error: 'Invalid effective date format' },
+        { status: 400 }
+      );
+    }
+
+    // Validate priority enum
+    if (priority) {
+      const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+      if (!validPriorities.includes(priority)) {
+        return NextResponse.json(
+          { error: `Invalid priority. Must be one of: ${validPriorities.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate effectivity type enum
+    if (effectivityType) {
+      const validTypes = ['DATE_BASED', 'IMMEDIATE'];
+      if (!validTypes.includes(effectivityType)) {
+        return NextResponse.json(
+          { error: `Invalid effectivity type. Must be one of: ${validTypes.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate material disposition enum
+    if (materialDisposition) {
+      const validDispositions = ['USE_AS_IS', 'REWORK', 'SCRAP', 'RETURN_TO_VENDOR', 'SORT_INSPECT', 'NO_IMPACT'];
+      if (!validDispositions.includes(materialDisposition)) {
+        return NextResponse.json(
+          { error: `Invalid material disposition. Must be one of: ${validDispositions.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate estimated cost is positive if provided
+    if (estimatedTotalCost !== undefined && estimatedTotalCost !== null) {
+      const cost = parseFloat(estimatedTotalCost.toString());
+      if (isNaN(cost)) {
+        return NextResponse.json(
+          { error: 'Estimated total cost must be a valid number' },
+          { status: 400 }
+        );
+      }
+      if (cost < 0) {
+        return NextResponse.json(
+          { error: 'Estimated total cost must be positive' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate target date is in the future if provided
+    if (targetDate) {
+      const target = new Date(targetDate);
+      if (isNaN(target.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid target date format' },
+          { status: 400 }
+        );
+      }
+      if (target <= new Date()) {
+        return NextResponse.json(
+          { error: 'Target date must be in the future' },
+          { status: 400 }
+        );
+      }
     }
 
     const organizationId = session.user.organizationId;
@@ -105,6 +189,13 @@ export async function POST(request: NextRequest) {
         resourcesRequired,
         estimatedEffort,
         targetDate: targetDate ? new Date(targetDate) : null,
+        effectiveDate: new Date(effectiveDate),
+        effectivityType: effectivityType || 'DATE_BASED',
+        materialDisposition: materialDisposition || 'NO_IMPACT',
+        documentUpdates,
+        implementationTeam,
+        inventoryImpact: inventoryImpact || false,
+        estimatedTotalCost: estimatedTotalCost ? parseFloat(estimatedTotalCost.toString()) : null,
       },
       include: {
         submitter: { select: { id: true, name: true, email: true } },

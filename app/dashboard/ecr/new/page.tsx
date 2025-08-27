@@ -10,6 +10,11 @@ interface FormData {
   description: string;
   reason: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  reasonForChange: string[];
+  customerImpact: 'DIRECT_IMPACT' | 'INDIRECT_IMPACT' | 'NO_IMPACT';
+  estimatedCostRange: string;
+  targetImplementationDate: string;
+  stakeholders: string;
   estimatedCost: string;
   affectedProducts: string;
   affectedDocuments: string;
@@ -26,6 +31,11 @@ export default function NewECRPage() {
     description: '',
     reason: '',
     priority: 'MEDIUM',
+    reasonForChange: [],
+    customerImpact: 'NO_IMPACT',
+    estimatedCostRange: '',
+    targetImplementationDate: '',
+    stakeholders: '',
     estimatedCost: '',
     affectedProducts: '',
     affectedDocuments: '',
@@ -37,6 +47,15 @@ export default function NewECRPage() {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleReasonForChangeToggle = (reason: string) => {
+    setFormData(prev => ({
+      ...prev,
+      reasonForChange: prev.reasonForChange.includes(reason)
+        ? prev.reasonForChange.filter(r => r !== reason)
+        : [...prev.reasonForChange, reason]
     }));
   };
 
@@ -71,6 +90,18 @@ export default function NewECRPage() {
       return;
     }
 
+    if (formData.reasonForChange.length === 0) {
+      setError('At least one reason for change must be selected');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.targetImplementationDate && new Date(formData.targetImplementationDate) <= new Date()) {
+      setError('Target implementation date must be in the future');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/ecr', {
         method: 'POST',
@@ -82,6 +113,12 @@ export default function NewECRPage() {
           description: formData.description.trim(),
           reason: formData.reason.trim(),
           urgency: formData.priority,
+          priority: formData.priority,
+          reasonForChange: formData.reasonForChange.join(', '),
+          customerImpact: formData.customerImpact,
+          estimatedCostRange: formData.estimatedCostRange || null,
+          targetImplementationDate: formData.targetImplementationDate || null,
+          stakeholders: formData.stakeholders.trim() || null,
           affectedProducts: formData.affectedProducts.trim() || null,
           affectedDocuments: formData.affectedDocuments.trim() || null,
           costImpact: formData.estimatedCost ? parseFloat(formData.estimatedCost) : null,
@@ -181,40 +218,52 @@ export default function NewECRPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
-                    Priority
-                  </label>
-                  <select
-                    id="priority"
-                    name="priority"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    value={formData.priority}
-                    onChange={handleChange}
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="CRITICAL">Critical</option>
-                  </select>
-                </div>
+              <div>
+                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
+                  Priority <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="priority"
+                  name="priority"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  value={formData.priority}
+                  onChange={handleChange}
+                >
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="CRITICAL">Critical</option>
+                </select>
+              </div>
 
-                <div>
-                  <label htmlFor="estimatedCost" className="block text-sm font-medium text-gray-700 mb-1">
-                    Estimated Cost (USD)
-                  </label>
-                  <input
-                    type="number"
-                    id="estimatedCost"
-                    name="estimatedCost"
-                    min="0"
-                    step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="0.00"
-                    value={formData.estimatedCost}
-                    onChange={handleChange}
-                  />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Reason for Change <span className="text-red-500">*</span>
+                </label>
+                <div className="space-y-2">
+                  {[
+                    'Quality Issue',
+                    'Cost Reduction',
+                    'Customer Request',
+                    'Regulatory Compliance',
+                    'Safety Concern',
+                    'Performance Improvement',
+                    'Obsolescence',
+                    'Manufacturing Issue',
+                    'Field Failure',
+                    'Supplier Change'
+                  ].map((reason) => (
+                    <label key={reason} className="inline-flex items-center mr-6">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                        checked={formData.reasonForChange.includes(reason)}
+                        onChange={() => handleReasonForChangeToggle(reason)}
+                      />
+                      <span className="ml-2 text-sm text-gray-900">{reason}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
@@ -223,6 +272,103 @@ export default function NewECRPage() {
           {/* Impact Assessment */}
           <div className="border-b border-gray-200 pb-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Impact Assessment</h3>
+            
+            <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="customerImpact" className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Impact
+                  </label>
+                  <select
+                    id="customerImpact"
+                    name="customerImpact"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    value={formData.customerImpact}
+                    onChange={handleChange}
+                  >
+                    <option value="NO_IMPACT">No Impact</option>
+                    <option value="INDIRECT_IMPACT">Indirect Impact</option>
+                    <option value="DIRECT_IMPACT">Direct Impact</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="estimatedCostRange" className="block text-sm font-medium text-gray-700 mb-1">
+                    Estimated Cost Range
+                  </label>
+                  <select
+                    id="estimatedCostRange"
+                    name="estimatedCostRange"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    value={formData.estimatedCostRange}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select range...</option>
+                    <option value="UNDER_1K">&lt;$1K</option>
+                    <option value="FROM_1K_TO_10K">$1K-$10K</option>
+                    <option value="FROM_10K_TO_50K">$10K-$50K</option>
+                    <option value="FROM_50K_TO_100K">$50K-$100K</option>
+                    <option value="OVER_100K">&gt;$100K</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="stakeholders" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stakeholders
+                </label>
+                <input
+                  type="text"
+                  id="stakeholders"
+                  name="stakeholders"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  placeholder="List key stakeholders who should be involved or notified"
+                  value={formData.stakeholders}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Planning */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Planning</h3>
+            
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label htmlFor="targetImplementationDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  Target Implementation Date
+                </label>
+                <input
+                  type="date"
+                  id="targetImplementationDate"
+                  name="targetImplementationDate"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  value={formData.targetImplementationDate}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="implementationPlan" className="block text-sm font-medium text-gray-700 mb-1">
+                  Implementation Plan
+                </label>
+                <textarea
+                  id="implementationPlan"
+                  name="implementationPlan"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                  placeholder="High-level plan for implementing this change"
+                  value={formData.implementationPlan}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Details */}
+          <div className="border-b border-gray-200 pb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Details</h3>
             
             <div className="grid grid-cols-1 gap-6">
               <div>
@@ -256,16 +402,18 @@ export default function NewECRPage() {
               </div>
 
               <div>
-                <label htmlFor="implementationPlan" className="block text-sm font-medium text-gray-700 mb-1">
-                  Implementation Plan
+                <label htmlFor="estimatedCost" className="block text-sm font-medium text-gray-700 mb-1">
+                  Estimated Cost (USD)
                 </label>
-                <textarea
-                  id="implementationPlan"
-                  name="implementationPlan"
-                  rows={3}
+                <input
+                  type="number"
+                  id="estimatedCost"
+                  name="estimatedCost"
+                  min="0"
+                  step="0.01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                  placeholder="High-level plan for implementing this change"
-                  value={formData.implementationPlan}
+                  placeholder="0.00"
+                  value={formData.estimatedCost}
                   onChange={handleChange}
                 />
               </div>

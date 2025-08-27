@@ -89,16 +89,101 @@ export async function POST(request: NextRequest) {
       affectedItems,
       dispositionInstructions,
       verificationMethod,
+      distributionList,
+      internalStakeholders,
+      customerNotificationRequired,
+      responseDeadline,
+      implementationStatus,
+      actualImplementationDate,
+      acknowledgmentStatus,
+      finalDocumentationSummary,
+      closureApprover,
     } = body;
 
     const organizationId = session.user.organizationId;
     const submitterId = session.user.id;
 
+    // Validate required fields
     if (!title || !description) {
       return NextResponse.json(
-        { error: 'Required fields are missing' },
+        { error: 'Required fields are missing: title and description are required' },
         { status: 400 }
       );
+    }
+
+    // Validate distribution list has at least one email if provided
+    if (distributionList && distributionList.trim()) {
+      const emails = distributionList.split(',').map((email: string) => email.trim()).filter((email: string) => email.length > 0);
+      if (emails.length === 0) {
+        return NextResponse.json(
+          { error: 'Distribution list must have at least one email address' },
+          { status: 400 }
+        );
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalidEmails = emails.filter(email => !emailRegex.test(email));
+      if (invalidEmails.length > 0) {
+        return NextResponse.json(
+          { error: `Invalid email addresses in distribution list: ${invalidEmails.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate customer notification required enum
+    if (customerNotificationRequired) {
+      const validNotifications = ['FORMAL', 'INFORMATIONAL', 'NOT_REQUIRED'];
+      if (!validNotifications.includes(customerNotificationRequired)) {
+        return NextResponse.json(
+          { error: `Invalid customer notification type. Must be one of: ${validNotifications.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate response deadline enum
+    if (responseDeadline) {
+      const validDeadlines = ['HOURS_24', 'HOURS_48', 'DAYS_5', 'DAYS_10', 'DAYS_30'];
+      if (!validDeadlines.includes(responseDeadline)) {
+        return NextResponse.json(
+          { error: `Invalid response deadline. Must be one of: ${validDeadlines.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate implementation status enum
+    if (implementationStatus) {
+      const validStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE', 'VERIFIED'];
+      if (!validStatuses.includes(implementationStatus)) {
+        return NextResponse.json(
+          { error: `Invalid implementation status. Must be one of: ${validStatuses.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate dates
+    if (effectiveDate) {
+      const effective = new Date(effectiveDate);
+      if (isNaN(effective.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid effective date format' },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (actualImplementationDate) {
+      const actual = new Date(actualImplementationDate);
+      if (isNaN(actual.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid actual implementation date format' },
+          { status: 400 }
+        );
+      }
     }
 
     let ecnNumber: string;
@@ -138,6 +223,15 @@ export async function POST(request: NextRequest) {
         affectedItems,
         dispositionInstructions,
         verificationMethod,
+        distributionList,
+        internalStakeholders,
+        customerNotificationRequired: customerNotificationRequired || 'NOT_REQUIRED',
+        responseDeadline: responseDeadline || null,
+        implementationStatus: implementationStatus || 'NOT_STARTED',
+        actualImplementationDate: actualImplementationDate ? new Date(actualImplementationDate) : null,
+        acknowledgmentStatus,
+        finalDocumentationSummary,
+        closureApprover,
       },
       include: {
         submitter: { select: { id: true, name: true, email: true } },

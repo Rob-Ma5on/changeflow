@@ -76,6 +76,12 @@ export async function POST(request: NextRequest) {
       description,
       reason,
       urgency,
+      priority,
+      reasonForChange,
+      customerImpact,
+      estimatedCostRange,
+      targetImplementationDate,
+      stakeholders,
       assigneeId,
       affectedProducts,
       affectedDocuments,
@@ -84,11 +90,68 @@ export async function POST(request: NextRequest) {
       implementationPlan,
     } = body;
 
+    // Validate required fields
     if (!title || !description || !reason) {
       return NextResponse.json(
-        { error: 'Required fields are missing' },
+        { error: 'Required fields are missing: title, description, and business justification are required' },
         { status: 400 }
       );
+    }
+
+    // Validate priority is required for Phase 1
+    if (!priority) {
+      return NextResponse.json(
+        { error: 'Priority is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate priority enum
+    const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+    if (!validPriorities.includes(priority)) {
+      return NextResponse.json(
+        { error: `Invalid priority. Must be one of: ${validPriorities.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate customer impact enum
+    if (customerImpact) {
+      const validImpacts = ['DIRECT_IMPACT', 'INDIRECT_IMPACT', 'NO_IMPACT'];
+      if (!validImpacts.includes(customerImpact)) {
+        return NextResponse.json(
+          { error: `Invalid customer impact. Must be one of: ${validImpacts.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate estimated cost range enum
+    if (estimatedCostRange) {
+      const validRanges = ['UNDER_1K', 'FROM_1K_TO_10K', 'FROM_10K_TO_50K', 'FROM_50K_TO_100K', 'OVER_100K'];
+      if (!validRanges.includes(estimatedCostRange)) {
+        return NextResponse.json(
+          { error: `Invalid cost range. Must be one of: ${validRanges.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate target date is in the future
+    if (targetImplementationDate) {
+      const targetDate = new Date(targetImplementationDate);
+      if (isNaN(targetDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid target implementation date format' },
+          { status: 400 }
+        );
+      }
+      if (targetDate <= new Date()) {
+        return NextResponse.json(
+          { error: 'Target implementation date must be in the future' },
+          { status: 400 }
+        );
+      }
     }
 
     const organizationId = session.user.organizationId;
@@ -141,7 +204,13 @@ export async function POST(request: NextRequest) {
         title,
         description,
         reason,
-        urgency: urgency || 'MEDIUM',
+        urgency: urgency || priority || 'MEDIUM',
+        priority,
+        reasonForChange,
+        customerImpact: customerImpact || 'NO_IMPACT',
+        estimatedCostRange,
+        targetImplementationDate: targetImplementationDate ? new Date(targetImplementationDate) : null,
+        stakeholders,
         organizationId,
         submitterId,
         assigneeId,

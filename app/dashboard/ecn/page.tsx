@@ -17,6 +17,10 @@ interface ECN {
   status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'DISTRIBUTED' | 'EFFECTIVE' | 'CANCELLED';
   effectiveDate?: string;
   distributedAt?: string;
+  customerNotificationRequired: string;
+  responseDeadline?: string;
+  implementationStatus: string;
+  acknowledgmentStatus?: string;
   createdAt: string;
   submitter: { id: string; name: string; email: string };
   assignee?: { id: string; name: string; email: string };
@@ -296,8 +300,9 @@ export default function ECNPage() {
       ecn.ecnNumber.toLowerCase().includes(filters.search.toLowerCase());
     const matchesStatus = !filters.status || ecn.status === filters.status;
     const matchesAssignee = !filters.assignee || ecn.assignee?.id === filters.assignee;
+    const matchesImplementationStatus = !filters.category || ecn.implementationStatus === filters.category;
     
-    return matchesSearch && matchesStatus && matchesAssignee;
+    return matchesSearch && matchesStatus && matchesAssignee && matchesImplementationStatus;
   });
 
   const handleSort = (key: string) => {
@@ -347,6 +352,13 @@ export default function ECNPage() {
     { value: 'CANCELLED', label: 'Cancelled' }
   ];
 
+  const implementationStatusOptions = [
+    { value: 'NOT_STARTED', label: 'Not Started' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'COMPLETE', label: 'Complete' },
+    { value: 'VERIFIED', label: 'Verified' }
+  ];
+
   const assigneeOptions = ecns.reduce((acc, ecn) => {
     if (ecn.assignee && !acc.find(a => a.value === ecn.assignee!.id)) {
       acc.push({ value: ecn.assignee.id, label: ecn.assignee.name });
@@ -378,6 +390,15 @@ export default function ECNPage() {
           <p className="text-gray-600 mt-2">Formal notifications of implemented changes</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <Link
+            href="/dashboard/ecn/new"
+            className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New ECN
+          </Link>
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         </div>
       </div>
@@ -388,7 +409,10 @@ export default function ECNPage() {
         onFiltersChange={setFilters}
         statusOptions={statusOptions}
         assigneeOptions={assigneeOptions}
+        categoryOptions={implementationStatusOptions}
         showAssignee={true}
+        showCategory={true}
+        categoryLabel="Implementation Status"
         onExport={handleExport}
         exportDisabled={sortedEcns.length === 0}
         isExporting={isExporting}
@@ -468,23 +492,35 @@ export default function ECNPage() {
                       onSort={handleSort}
                     />
                     <ColumnHeader
-                      title="Linked ECO"
-                      sortKey="eco"
+                      title="Customer Notification"
+                      sortKey="customerNotificationRequired"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                      className="hidden md:table-cell"
+                    />
+                    <ColumnHeader
+                      title="Response Deadline"
+                      sortKey="responseDeadline"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                      className="hidden lg:table-cell"
+                    />
+                    <ColumnHeader
+                      title="Implementation Status"
+                      sortKey="implementationStatus"
                       currentSort={sortConfig}
                       onSort={handleSort}
                     />
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Original ECR
-                    </th>
+                    <ColumnHeader
+                      title="Acknowledgment Status"
+                      sortKey="acknowledgmentStatus"
+                      currentSort={sortConfig}
+                      onSort={handleSort}
+                      className="hidden lg:table-cell"
+                    />
                     <ColumnHeader
                       title="Status"
                       sortKey="status"
-                      currentSort={sortConfig}
-                      onSort={handleSort}
-                    />
-                    <ColumnHeader
-                      title="Created"
-                      sortKey="createdAt"
                       currentSort={sortConfig}
                       onSort={handleSort}
                     />
@@ -507,38 +543,44 @@ export default function ECNPage() {
                           {ecn.title}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {ecn.eco ? (
-                          <span className="text-blue-600">
-                            {ecn.eco.ecoNumber}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">No ECO</span>
-                        )}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          ecn.customerNotificationRequired === 'FORMAL' ? 'bg-red-100 text-red-800' :
+                          ecn.customerNotificationRequired === 'INFORMATIONAL' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {ecn.customerNotificationRequired?.replace('_', ' ')}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {ecn.eco?.ecr ? (
-                          <div>
-                            <span className="text-gray-600">{ecn.eco.ecr.ecrNumber}</span>
-                            <div className="text-xs text-gray-400">
-                              by {ecn.eco.ecr.submitter.name}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">No ECR</span>
-                        )}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                        {ecn.responseDeadline ? (
+                          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            {ecn.responseDeadline.replace('HOURS_', '').replace('DAYS_', '') + 
+                             (ecn.responseDeadline.includes('HOURS') ? 'h' : 'd')}
+                          </span>
+                        ) : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          ecn.implementationStatus === 'NOT_STARTED' ? 'bg-gray-100 text-gray-800' :
+                          ecn.implementationStatus === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                          ecn.implementationStatus === 'COMPLETE' ? 'bg-green-100 text-green-800' :
+                          'bg-green-500 text-white'
+                        }`}>
+                          {ecn.implementationStatus?.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          ecn.acknowledgmentStatus === 'Acknowledged' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {ecn.acknowledgmentStatus || 'Pending'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecn.status)}`}>
                           {ecn.status.replace('_', ' ')}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(ecn.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
                       </td>
                     </tr>
                   ))}
