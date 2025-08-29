@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -112,13 +112,7 @@ export async function PATCH(
     }
 
     // Update the ECR status
-    const updateData: { 
-      status: string;
-      updatedAt: Date;
-      approverId?: string;
-      approvedAt?: Date;
-      rejectedAt?: Date;
-    } = { 
+    const updateData: any = { 
       status,
       updatedAt: new Date()
     };

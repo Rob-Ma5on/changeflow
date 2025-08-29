@@ -40,7 +40,7 @@ interface ECO {
   }>;
 }
 
-export default function ECODetailPage({ params }: { params: { id: string } }) {
+export default function ECODetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session } = useSession();
   const router = useRouter();
   const [eco, setEco] = useState<ECO | null>(null);
@@ -53,7 +53,8 @@ export default function ECODetailPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchECO = async () => {
       try {
-        const response = await fetch(`/api/eco/${params.id}`);
+        const resolvedParams = await params;
+        const response = await fetch(`/api/eco/${resolvedParams.id}`);
         if (response.ok) {
           const ecoData = await response.json();
           setEco(ecoData);
@@ -67,10 +68,8 @@ export default function ECODetailPage({ params }: { params: { id: string } }) {
       }
     };
 
-    if (params.id) {
-      fetchECO();
-    }
-  }, [params.id]);
+    fetchECO();
+  }, [params]);
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (!eco) return;

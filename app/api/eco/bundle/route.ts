@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { generateNumber } from '@/lib/numbering';
 
 export async function POST(request: NextRequest) {
@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
     // Determine priority based on highest ECR priority
     const priorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     const maxPriority = ecrs.reduce((max, ecr) => {
-      const currentIndex = priorities.indexOf(ecr.urgency);
+      const currentIndex = priorities.indexOf(ecr.priority);
       const maxIndex = priorities.indexOf(max);
-      return currentIndex > maxIndex ? ecr.urgency : max;
+      return currentIndex > maxIndex ? ecr.priority : max;
     }, 'LOW');
 
     // Calculate target date based on highest priority

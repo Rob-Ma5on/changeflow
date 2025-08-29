@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { generateNumber } from '@/lib/numbering';
 
 export async function GET(request: NextRequest) {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const organizationId = session.user.organizationId;
 
-    const whereClause: { organizationId: string; status?: string } = {
+    const whereClause: any = {
       organizationId,
     };
 
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const invalidEmails = emails.filter(email => !emailRegex.test(email));
+    const invalidEmails = emails.filter((email: string) => !emailRegex.test(email));
     if (invalidEmails.length > 0) {
       return NextResponse.json(
         { error: `Invalid email addresses in distribution list: ${invalidEmails.join(', ')}` },

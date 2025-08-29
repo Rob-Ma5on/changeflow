@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export async function PATCH(
   request: NextRequest,
@@ -68,7 +68,7 @@ export async function PATCH(
     } catch (prismaError) {
       console.error('Prisma update error:', prismaError);
       return NextResponse.json(
-        { error: 'Database update failed', details: prismaError.message },
+        { error: 'Database update failed', details: (prismaError as any)?.message || 'Unknown error' },
         { status: 500 }
       );
     }
