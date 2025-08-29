@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import WorkflowBreadcrumbs from '@/components/WorkflowBreadcrumbs';
 
 interface ECNDetail {
   id: string;
@@ -176,6 +177,28 @@ export default function ECNDetailPage() {
 
   return (
     <div className="space-y-6">
+      {/* Workflow Breadcrumbs */}
+      {ecn.eco && (
+        <WorkflowBreadcrumbs
+          currentStep="ECN"
+          ecr={ecn.eco.ecrs?.length === 1 ? {
+            id: ecn.eco.ecrs[0].id,
+            ecrNumber: ecn.eco.ecrs[0].ecrNumber,
+            title: ecn.eco.ecrs[0].title
+          } : undefined}
+          eco={{
+            id: ecn.eco.id,
+            ecoNumber: ecn.eco.ecoNumber,
+            title: ecn.eco.title
+          }}
+          ecn={{
+            id: ecn.id,
+            ecnNumber: ecn.ecnNumber,
+            title: ecn.title
+          }}
+        />
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>

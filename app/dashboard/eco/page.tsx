@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
 import ViewToggle, { ViewMode } from '@/components/view-toggle';
@@ -340,6 +341,7 @@ function KanbanColumn({ column, ecos, onECOClick, onCreateECN }: {
 
 export default function ECOPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [ecos, setEcos] = useState<ECO[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
@@ -524,33 +526,9 @@ export default function ECOPage() {
     setShowToast(true);
   };
 
-  const handleCreateECN = async (ecoId: string) => {
-    try {
-      const response = await fetch('/api/ecn/create-from-eco', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ecoId }),
-      });
-
-      if (response.ok) {
-        const ecnData = await response.json();
-        setToastMessage(`ECN ${ecnData.ecnNumber} created successfully`);
-        setToastType('success');
-        setShowToast(true);
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        setToastMessage(`Failed to create ECN: ${errorData.error}`);
-        setToastType('error');
-        setShowToast(true);
-      }
-    } catch (error) {
-      console.error('Error creating ECN:', error);
-      setToastMessage('Failed to create ECN: Network error');
-      setToastType('error');
-      setShowToast(true);
-    }
+  const handleCreateECN = (ecoId: string) => {
+    // Redirect to ECN form with ECO pre-population
+    router.push(`/dashboard/ecn/new?ecoId=${ecoId}`);
   };
 
 
@@ -564,11 +542,30 @@ export default function ECOPage() {
 
   return (
     <div className="space-y-6">
+      {/* Info Banner */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-amber-800">
+              Ready to Create ECOs?
+            </h3>
+            <div className="mt-1 text-sm text-amber-700">
+              <p>ECOs are created from approved ECRs to track implementation. <Link href="/dashboard/ecr?status=APPROVED" className="font-medium text-amber-800 underline hover:text-amber-900">View approved ECRs</Link> ready for conversion.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Engineering Change Orders</h1>
-          <p className="text-gray-600 mt-2">Track implementation progress</p>
+          <p className="text-gray-600 mt-2">ECOs are created from approved ECRs to track implementation progress</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="flex flex-col sm:flex-row gap-2">
@@ -581,15 +578,6 @@ export default function ECOPage() {
               </svg>
               <span className="hidden sm:inline">Convert ECR to ECO</span>
               <span className="sm:hidden">Convert</span>
-            </Link>
-            <Link
-              href="/dashboard/eco/new"
-              className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New ECO
             </Link>
           </div>
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />

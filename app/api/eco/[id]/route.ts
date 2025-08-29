@@ -115,7 +115,7 @@ export async function GET(
             title: true,
             description: true,
             reason: true,
-            urgency: true,
+            priority: true,
             submitter: { select: { name: true } }
           } 
         },

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
+import WorkflowBreadcrumbs from '@/components/WorkflowBreadcrumbs';
 
 interface ECO {
   id: string;
@@ -45,7 +46,6 @@ export default function ECODetailPage({ params }: { params: { id: string } }) {
   const [eco, setEco] = useState<ECO | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [generatingECN, setGeneratingECN] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [showToast, setShowToast] = useState(false);
@@ -113,54 +113,9 @@ export default function ECODetailPage({ params }: { params: { id: string } }) {
     }
   };
 
-  const handleGenerateECN = async () => {
+  const handleGenerateECN = () => {
     if (!eco || eco.status !== 'COMPLETED') return;
-    
-    setGeneratingECN(true);
-    try {
-      const response = await fetch('/api/ecn', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: `Engineering Change Notice - ${eco.title}`,
-          description: `Formal notice of implementation for ${eco.ecoNumber}: ${eco.description}`,
-          ecoId: eco.id,
-          effectiveDate: new Date().toISOString(),
-          changesImplemented: eco.implementationPlan || 'Implementation completed per ECO specifications',
-          affectedItems: eco.ecrs.map(ecr => ecr.ecrNumber).join(', '),
-          dispositionInstructions: 'All existing inventory and work-in-progress should be handled according to standard procedures',
-          verificationMethod: 'Implementation verification completed through ECO tracking'
-        }),
-      });
-
-      if (response.ok) {
-        const ecnData = await response.json();
-        setToastMessage(`ECN ${ecnData.ecnNumber} generated successfully`);
-        setToastType('success');
-        setShowToast(true);
-        
-        // Refresh ECO to show the new ECN
-        const ecoResponse = await fetch(`/api/eco/${params.id}`);
-        if (ecoResponse.ok) {
-          const updatedEco = await ecoResponse.json();
-          setEco(updatedEco);
-        }
-      } else {
-        const errorData = await response.json();
-        setToastMessage(`Failed to generate ECN: ${errorData.error}`);
-        setToastType('error');
-        setShowToast(true);
-      }
-    } catch (error) {
-      console.error('Error generating ECN:', error);
-      setToastMessage('Failed to generate ECN');
-      setToastType('error');
-      setShowToast(true);
-    } finally {
-      setGeneratingECN(false);
-    }
+    router.push(`/dashboard/ecn/new?ecoId=${eco.id}`);
   };
 
   const getStatusBadge = (status: string) => {
@@ -230,6 +185,28 @@ export default function ECODetailPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Workflow Breadcrumbs */}
+      {eco.ecrs.length > 0 && (
+        <WorkflowBreadcrumbs
+          currentStep="ECO"
+          ecr={eco.ecrs.length === 1 ? {
+            id: eco.ecrs[0].id,
+            ecrNumber: eco.ecrs[0].ecrNumber,
+            title: eco.ecrs[0].title
+          } : undefined}
+          eco={{
+            id: eco.id,
+            ecoNumber: eco.ecoNumber,
+            title: eco.title
+          }}
+          ecn={eco.ecns.length > 0 ? {
+            id: eco.ecns[0].id,
+            ecnNumber: eco.ecns[0].ecnNumber,
+            title: eco.ecns[0].title
+          } : undefined}
+        />
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -247,10 +224,9 @@ export default function ECODetailPage({ params }: { params: { id: string } }) {
             {canGenerateECN && (
               <button
                 onClick={handleGenerateECN}
-                disabled={generatingECN}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
-                {generatingECN ? 'Generating...' : 'Generate ECN'}
+                Generate ECN
               </button>
             )}
             {getStatusBadge(eco.status)}
@@ -367,6 +343,86 @@ export default function ECODetailPage({ params }: { params: { id: string } }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ECN Generation Status Messages */}
+      {!canGenerateECN && (
+        <>
+          {eco.status !== 'COMPLETED' && eco.status !== 'CANCELLED' && (
+            <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-amber-800">ECN Generation Not Available</h3>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Complete ECO implementation before generating ECN.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {eco.status === 'CANCELLED' && (
+            <div className="mt-8 bg-red-50 border border-red-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">Cannot Generate ECN</h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    Cancelled ECOs cannot generate ECNs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {eco.status === 'COMPLETED' && eco.ecns.length > 0 && (
+            <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-green-800">ECN Already Generated</h3>
+                  <p className="text-sm text-green-700 mt-1">
+                    ECN has already been generated for this completed ECO.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {canGenerateECN && (
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <h3 className="text-sm font-medium text-blue-800">Ready to Generate ECN</h3>
+                <p className="text-sm text-blue-700 mt-1">
+                  ECO is completed and ready for formal change notification.
+                </p>
+              </div>
+              <button
+                onClick={handleGenerateECN}
+                className="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Generate ECN
+              </button>
+            </div>
           </div>
         </div>
       )}

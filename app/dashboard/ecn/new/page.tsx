@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import WorkflowBreadcrumbs from '@/components/WorkflowBreadcrumbs';
+import WorkflowProgress from '@/components/WorkflowProgress';
 
 interface ECO {
   id: string;
@@ -31,15 +33,18 @@ interface FormData {
   acknowledgmentStatus: string;
   finalDocumentationSummary: string;
   closureApprover: string;
+  sourceEcoId: string;
 }
 
 export default function NewECNPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [completedECOs, setCompletedECOs] = useState<ECO[]>([]);
   const [loadingECOs, setLoadingECOs] = useState(true);
+  const [sourceEco, setSourceEco] = useState<ECO | null>(null);
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
@@ -58,10 +63,61 @@ export default function NewECNPage() {
     actualImplementationDate: '',
     acknowledgmentStatus: 'Pending',
     finalDocumentationSummary: '',
-    closureApprover: ''
+    closureApprover: '',
+    sourceEcoId: ''
   });
 
   useEffect(() => {
+    const ecoId = searchParams.get('ecoId');
+    
+    // If no ECO parameter, redirect back to ECO page with message
+    if (!ecoId) {
+      router.replace('/dashboard/eco?error=ECNs must be generated from completed ECOs');
+      return;
+    }
+
+    const fetchSourceEco = async () => {
+      try {
+        // Fetch specific ECO
+        const response = await fetch(`/api/eco/${ecoId}`);
+        if (response.ok) {
+          const eco = await response.json();
+          
+          // Verify ECO is completed
+          if (eco.status !== 'COMPLETED') {
+            router.replace(`/dashboard/eco?error=Only completed ECOs can generate ECNs. ECO ${eco.ecoNumber} is currently ${eco.status}.`);
+            return;
+          }
+
+          setSourceEco(eco);
+
+          // Pre-populate form based on ECO data
+          setFormData(prev => ({
+            ...prev,
+            title: `Engineering Change Notice - ${eco.title}`,
+            description: `Formal notice of implementation for ${eco.ecoNumber}`,
+            ecoId: eco.id,
+            sourceEcoId: eco.id,
+            effectiveDate: new Date().toISOString().split('T')[0],
+            changesImplemented: eco.implementationPlan || 'Implementation completed per ECO specifications',
+            affectedItems: eco.ecrs?.map((ecr: any) => ecr.ecrNumber).join(', ') || 'Items affected per ECO scope',
+            dispositionInstructions: 'All existing inventory and work-in-progress should be handled according to standard procedures',
+            verificationMethod: 'Implementation verification completed through ECO tracking',
+            implementationStatus: 'COMPLETE'
+          }));
+        } else {
+          router.replace('/dashboard/eco?error=ECO not found');
+          return;
+        }
+      } catch (error) {
+        console.error('Error fetching ECO:', error);
+        setError('Failed to load ECO data. Please try again.');
+      } finally {
+        setLoadingECOs(false);
+      }
+    };
+
+    // Also fetch all completed ECOs for dropdown (legacy support)
     const fetchCompletedECOs = async () => {
       try {
         const response = await fetch('/api/eco');
@@ -72,13 +128,12 @@ export default function NewECNPage() {
         }
       } catch (error) {
         console.error('Error fetching ECOs:', error);
-      } finally {
-        setLoadingECOs(false);
       }
     };
 
+    fetchSourceEco();
     fetchCompletedECOs();
-  }, []);
+  }, [searchParams, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -179,7 +234,7 @@ export default function NewECNPage() {
         body: JSON.stringify({
           title: formData.title.trim(),
           description: formData.description.trim(),
-          ecoId: formData.ecoId,
+          ecoId: formData.sourceEcoId || formData.ecoId,
           assigneeId: formData.assigneeId || null,
           effectiveDate: formData.effectiveDate || null,
           changesImplemented: formData.changesImplemented.trim() || null,
@@ -226,6 +281,23 @@ export default function NewECNPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Workflow Breadcrumbs */}
+      {sourceEco && (
+        <WorkflowBreadcrumbs
+          currentStep="ECN"
+          ecr={sourceEco.ecrs?.length === 1 ? {
+            id: sourceEco.ecrs[0].id,
+            ecrNumber: sourceEco.ecrs[0].ecrNumber,
+            title: sourceEco.ecrs[0].title
+          } : undefined}
+          eco={{
+            id: sourceEco.id,
+            ecoNumber: sourceEco.ecoNumber,
+            title: sourceEco.title
+          }}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -243,43 +315,89 @@ export default function NewECNPage() {
         </Link>
       </div>
 
+      {/* Workflow Progress */}
+      {sourceEco && (
+        <WorkflowProgress
+          currentStep={3}
+          completedSteps={[1, 2]}
+          sourceInfo={{
+            ecrNumbers: sourceEco.ecrs?.map((ecr: any) => ecr.ecrNumber) || [],
+            ecoNumber: sourceEco.ecoNumber
+          }}
+        />
+      )}
+
       {/* Form */}
       <div className="bg-white shadow-sm rounded-lg border border-gray-200">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Source ECO */}
+          {sourceEco && (
+            <div className="border-b border-gray-200 pb-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Source ECO</h3>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-green-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-green-800 mb-2">
+                      This ECN notifies of changes implemented in:
+                    </h4>
+                    <div className="bg-white rounded p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-green-600 font-medium">{sourceEco.ecoNumber}</span>
+                          <span className="text-gray-600 mx-2">-</span>
+                          <span className="text-gray-900">{sourceEco.title}</span>
+                        </div>
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                          {sourceEco.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Identification */}
           <div className="border-b border-gray-200 pb-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Identification</h3>
             
             <div className="grid grid-cols-1 gap-6">
-              <div>
-                <label htmlFor="ecoId" className="block text-sm font-medium text-gray-700 mb-1">
-                  Source ECO <span className="text-red-500">*</span>
-                </label>
-                {loadingECOs ? (
-                  <div className="animate-pulse h-10 bg-gray-200 rounded"></div>
-                ) : (
-                  <select
-                    id="ecoId"
-                    name="ecoId"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    value={formData.ecoId}
-                    onChange={handleECOChange}
-                  >
-                    <option value="">Select a completed ECO...</option>
-                    {completedECOs.map((eco) => (
-                      <option key={eco.id} value={eco.id}>
-                        {eco.ecoNumber} - {eco.title}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                {completedECOs.length === 0 && !loadingECOs && (
-                  <p className="text-sm text-amber-600 mt-1">
-                    No completed ECOs available. Complete an ECO first to create an ECN.
-                  </p>
-                )}
-              </div>
+              {/* Only show ECO dropdown if no source ECO from URL */}
+              {!sourceEco && (
+                <div>
+                  <label htmlFor="ecoId" className="block text-sm font-medium text-gray-700 mb-1">
+                    Source ECO <span className="text-red-500">*</span>
+                  </label>
+                  {loadingECOs ? (
+                    <div className="animate-pulse h-10 bg-gray-200 rounded"></div>
+                  ) : (
+                    <select
+                      id="ecoId"
+                      name="ecoId"
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                      value={formData.ecoId}
+                      onChange={handleECOChange}
+                    >
+                      <option value="">Select a completed ECO...</option>
+                      {completedECOs.map((eco) => (
+                        <option key={eco.id} value={eco.id}>
+                          {eco.ecoNumber} - {eco.title}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {completedECOs.length === 0 && !loadingECOs && (
+                    <p className="text-sm text-amber-600 mt-1">
+                      No completed ECOs available. Complete an ECO first to create an ECN.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">

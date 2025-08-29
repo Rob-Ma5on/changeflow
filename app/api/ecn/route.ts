@@ -188,17 +188,37 @@ export async function POST(request: NextRequest) {
 
     let ecnNumber: string;
     
-    // If creating ECN from an ECO, use matching number format
+    // If creating ECN from an ECO, validate and use matching number format
     if (ecoId) {
       const eco = await prisma.eCO.findFirst({
         where: { id: ecoId, organizationId },
-        select: { ecoNumber: true }
+        select: { ecoNumber: true, status: true }
       });
       
       if (!eco) {
         return NextResponse.json(
           { error: 'ECO not found' },
           { status: 404 }
+        );
+      }
+
+      // Validate ECO is completed
+      if (eco.status !== 'COMPLETED') {
+        return NextResponse.json(
+          { error: 'ECNs can only be created from completed ECOs' },
+          { status: 400 }
+        );
+      }
+
+      // Check if ECN already exists for this ECO
+      const existingEcn = await prisma.eCN.findFirst({
+        where: { ecoId, organizationId }
+      });
+
+      if (existingEcn) {
+        return NextResponse.json(
+          { error: 'An ECN already exists for this ECO', ecnNumber: existingEcn.ecnNumber },
+          { status: 409 }
         );
       }
       

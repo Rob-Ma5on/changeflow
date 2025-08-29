@@ -89,6 +89,118 @@ export async function GET() {
       return completedEcrs + completedEcos + completedEcns;
     });
 
+    // Get priority breakdown
+    const priorityBreakdown = await prisma.$transaction(async (tx) => {
+      const [critical, high, medium, low] = await Promise.all([
+        tx.eCR.count({ where: { organizationId, priority: 'CRITICAL' } }),
+        tx.eCR.count({ where: { organizationId, priority: 'HIGH' } }),
+        tx.eCR.count({ where: { organizationId, priority: 'MEDIUM' } }),
+        tx.eCR.count({ where: { organizationId, priority: 'LOW' } })
+      ]);
+      return { critical, high, medium, low };
+    });
+
+    // Get customer impact summary
+    const customerImpactSummary = await prisma.$transaction(async (tx) => {
+      const [directImpact, indirectImpact, noImpact] = await Promise.all([
+        tx.eCR.count({ where: { organizationId, customerImpact: 'DIRECT_IMPACT' } }),
+        tx.eCR.count({ where: { organizationId, customerImpact: 'INDIRECT_IMPACT' } }),
+        tx.eCR.count({ where: { organizationId, customerImpact: 'NO_IMPACT' } })
+      ]);
+      return { directImpact, indirectImpact, noImpact };
+    });
+
+    // Get implementation status
+    const implementationStatus = await prisma.$transaction(async (tx) => {
+      const [notStarted, inProgress, complete, verified] = await Promise.all([
+        tx.eCN.count({ where: { organizationId, implementationStatus: 'NOT_STARTED' } }),
+        tx.eCN.count({ where: { organizationId, implementationStatus: 'IN_PROGRESS' } }),
+        tx.eCN.count({ where: { organizationId, implementationStatus: 'COMPLETE' } }),
+        tx.eCN.count({ where: { organizationId, implementationStatus: 'VERIFIED' } })
+      ]);
+      return { notStarted, inProgress, complete, verified };
+    });
+
+    // Get this week's targets
+    const weekStart = new Date(now.getTime() - now.getDay() * 24 * 60 * 60 * 1000);
+    const weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+    
+    const thisWeekTargets = await prisma.$transaction(async (tx) => {
+      const [ecrTargets, ecoTargets] = await Promise.all([
+        tx.eCR.findMany({
+          where: {
+            organizationId,
+            targetImplementationDate: {
+              gte: weekStart,
+              lte: weekEnd
+            }
+          },
+          select: {
+            id: true,
+            ecrNumber: true,
+            title: true,
+            targetImplementationDate: true,
+            priority: true,
+            assignee: { select: { name: true } }
+          }
+        }),
+        tx.eCO.findMany({
+          where: {
+            organizationId,
+            targetDate: {
+              gte: weekStart,
+              lte: weekEnd
+            }
+          },
+          select: {
+            id: true,
+            ecoNumber: true,
+            title: true,
+            targetDate: true,
+            priority: true,
+            assignee: { select: { name: true } }
+          }
+        })
+      ]);
+
+      return [
+        ...ecrTargets.map(ecr => ({
+          id: ecr.id,
+          type: 'ECR' as const,
+          number: ecr.ecrNumber,
+          title: ecr.title,
+          targetDate: ecr.targetImplementationDate?.toISOString() || '',
+          priority: ecr.priority || 'MEDIUM',
+          assignee: ecr.assignee?.name
+        })),
+        ...ecoTargets.map(eco => ({
+          id: eco.id,
+          type: 'ECO' as const,
+          number: eco.ecoNumber,
+          title: eco.title,
+          targetDate: eco.targetDate?.toISOString() || '',
+          priority: eco.priority || 'MEDIUM',
+          assignee: eco.assignee?.name
+        }))
+      ];
+    });
+
+    // Get user-specific stats
+    const userId = session.user.id;
+    const myItems = await prisma.$transaction(async (tx) => {
+      const [assigned, submitted, needsApproval] = await Promise.all([
+        tx.eCR.count({ where: { organizationId, assigneeId: userId } }),
+        tx.eCR.count({ where: { organizationId, submitterId: userId } }),
+        tx.eCR.count({ where: { organizationId, status: 'UNDER_REVIEW' } })
+      ]);
+      return { assigned, submitted, needsApproval };
+    });
+
+    // Additional quick filter stats
+    const highPriorityItems = priorityBreakdown.critical + priorityBreakdown.high;
+    const customerImpactItems = customerImpactSummary.directImpact;
+    const dueThisWeek = thisWeekTargets.length;
+
     // Fetch recent activity
     const recentActivity = await prisma.$transaction(async (tx) => {
       const [recentEcrs, recentEcos, recentEcns] = await Promise.all([
@@ -130,6 +242,8 @@ export async function GET() {
           number: ecr.ecrNumber,
           title: ecr.title,
           status: ecr.status,
+          priority: ecr.priority,
+          customerImpact: ecr.customerImpact,
           date: ecr.updatedAt.toISOString(),
           user: ecr.submitter.name
         })),
@@ -139,6 +253,7 @@ export async function GET() {
           number: eco.ecoNumber,
           title: eco.title,
           status: eco.status,
+          priority: eco.priority,
           date: eco.updatedAt.toISOString(),
           user: eco.assignee?.name || 'Unassigned'
         })),
@@ -149,7 +264,7 @@ export async function GET() {
           title: ecn.title,
           status: ecn.status,
           date: ecn.updatedAt.toISOString(),
-          user: ecn.eco.assignee?.name || 'Unassigned'
+          user: ecn.eco?.assignee?.name || 'Unassigned'
         }))
       ];
 
@@ -165,7 +280,15 @@ export async function GET() {
       ecosInProgress,
       pendingEcns,
       completedThisMonth,
-      recentActivity
+      priorityBreakdown,
+      customerImpactSummary,
+      implementationStatus,
+      thisWeekTargets,
+      recentActivity,
+      myItems,
+      highPriorityItems,
+      customerImpactItems,
+      dueThisWeek
     };
 
     return NextResponse.json(dashboardStats);

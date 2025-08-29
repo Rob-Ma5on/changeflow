@@ -383,22 +383,32 @@ export default function ECNPage() {
 
   return (
     <div className="space-y-6">
+      {/* Info Banner */}
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-purple-800">
+              Generate ECNs from Completed ECOs
+            </h3>
+            <div className="mt-1 text-sm text-purple-700">
+              <p>ECNs are generated from completed ECOs to formally notify stakeholders of implemented changes. <Link href="/dashboard/eco?status=COMPLETED" className="font-medium text-purple-800 underline hover:text-purple-900">View completed ECOs</Link> ready for ECN generation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Engineering Change Notices</h1>
-          <p className="text-gray-600 mt-2">Formal notifications of implemented changes</p>
+          <p className="text-gray-600 mt-2">ECNs are generated from completed ECOs to formally notify of implemented changes</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <Link
-            href="/dashboard/ecn/new"
-            className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New ECN
-          </Link>
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
         </div>
       </div>

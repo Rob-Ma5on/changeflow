@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
       title,
       description,
       ecrId,
+      sourceEcrIds,
       assigneeId,
       priority,
       implementationPlan,
@@ -173,36 +174,92 @@ export async function POST(request: NextRequest) {
     // Generate ECO number using new year-based numbering system
     const ecoNumber = await generateNumber('ECO', organizationId);
 
-    const eco = await prisma.eCO.create({
-      data: {
-        ecoNumber,
-        title,
-        description,
-        ecrId,
-        organizationId,
-        submitterId,
-        assigneeId,
-        priority,
-        implementationPlan,
-        testingPlan,
-        rollbackPlan,
-        resourcesRequired,
-        estimatedEffort,
-        targetDate: targetDate ? new Date(targetDate) : null,
-        effectiveDate: new Date(effectiveDate),
-        effectivityType,
-        materialDisposition,
-        documentUpdates,
-        implementationTeam,
-        inventoryImpact: inventoryImpact || false,
-        estimatedTotalCost: estimatedTotalCost ? parseFloat(estimatedTotalCost.toString()) : null,
-      },
-      include: {
-        submitter: { select: { id: true, name: true, email: true } },
-        assignee: { select: { id: true, name: true, email: true } },
-        organization: { select: { id: true, name: true } },
-        ecrs: { select: { id: true, ecrNumber: true, title: true } },
-      },
+    // Use transaction to create ECO and link/update ECRs
+    const eco = await prisma.$transaction(async (tx) => {
+      // Create the ECO
+      const newEco = await tx.eCO.create({
+        data: {
+          ecoNumber,
+          title,
+          description,
+          organizationId,
+          submitterId,
+          assigneeId,
+          priority,
+          implementationPlan,
+          testingPlan,
+          rollbackPlan,
+          resourcesRequired,
+          estimatedEffort,
+          targetDate: targetDate ? new Date(targetDate) : null,
+          effectiveDate: new Date(effectiveDate),
+          effectivityType,
+          materialDisposition,
+          documentUpdates,
+          implementationTeam,
+          inventoryImpact: inventoryImpact || false,
+          estimatedTotalCost: estimatedTotalCost ? parseFloat(estimatedTotalCost.toString()) : null,
+        },
+      });
+
+      // Link source ECRs if provided
+      if (sourceEcrIds && sourceEcrIds.length > 0) {
+        // Verify all ECRs are approved and belong to the organization
+        const ecrs = await tx.eCR.findMany({
+          where: {
+            id: { in: sourceEcrIds },
+            organizationId,
+            status: 'APPROVED'
+          }
+        });
+
+        if (ecrs.length !== sourceEcrIds.length) {
+          throw new Error('One or more ECRs are not approved or do not exist');
+        }
+
+        // Update ECRs to link to the ECO and mark as IMPLEMENTED
+        await tx.eCR.updateMany({
+          where: {
+            id: { in: sourceEcrIds }
+          },
+          data: {
+            ecoId: newEco.id,
+            status: 'IMPLEMENTED'
+          }
+        });
+      } else if (ecrId) {
+        // Legacy single ECR support
+        const ecr = await tx.eCR.findFirst({
+          where: {
+            id: ecrId,
+            organizationId,
+            status: 'APPROVED'
+          }
+        });
+
+        if (!ecr) {
+          throw new Error('ECR not found or not approved');
+        }
+
+        await tx.eCR.update({
+          where: { id: ecrId },
+          data: {
+            ecoId: newEco.id,
+            status: 'IMPLEMENTED'
+          }
+        });
+      }
+
+      // Return ECO with includes
+      return await tx.eCO.findUnique({
+        where: { id: newEco.id },
+        include: {
+          submitter: { select: { id: true, name: true, email: true } },
+          assignee: { select: { id: true, name: true, email: true } },
+          organization: { select: { id: true, name: true } },
+          ecrs: { select: { id: true, ecrNumber: true, title: true } },
+        }
+      });
     });
 
     return NextResponse.json(eco, { status: 201 });

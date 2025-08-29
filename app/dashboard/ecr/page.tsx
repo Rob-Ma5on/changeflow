@@ -364,6 +364,25 @@ export default function ECRPage() {
 
   return (
     <div className="space-y-6">
+      {/* Info Banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-blue-800">
+              Start Your Change Management Process
+            </h3>
+            <div className="mt-1 text-sm text-blue-700">
+              <p>Begin the change management workflow by creating a new Engineering Change Request (ECR). Once approved, ECRs can be converted to Engineering Change Orders (ECOs) for implementation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -457,26 +476,38 @@ export default function ECRPage() {
                           className="absolute top-2 right-2 z-10 text-blue-600 focus:ring-blue-500"
                         />
                       )}
-                      <EntityCard
-                        entityType="ECR"
-                        number={ecr.ecrNumber}
-                        title={ecr.title}
-                        priority={ecr.urgency as 'HIGH' | 'MEDIUM' | 'LOW'}
-                        status={ecr.status}
-                        requestor={{
-                          name: ecr.submitter.name,
-                          email: ecr.submitter.email
-                        }}
-                        createdDate={ecr.createdAt}
-                        onClick={() => window.location.href = `/dashboard/ecr/${ecr.id}`}
-                        className={ecr.status === 'APPROVED' ? 'pr-8' : ''}
-                        linkedEntity={ecr.eco ? {
-                          type: 'ECO',
-                          id: ecr.eco.id,
-                          number: ecr.eco.ecoNumber,
-                          title: ecr.eco.title
-                        } : undefined}
-                      />
+                      <div className="relative">
+                        <EntityCard
+                          entityType="ECR"
+                          number={ecr.ecrNumber}
+                          title={ecr.title}
+                          priority={ecr.urgency as 'HIGH' | 'MEDIUM' | 'LOW'}
+                          status={ecr.status}
+                          requestor={{
+                            name: ecr.submitter.name,
+                            email: ecr.submitter.email
+                          }}
+                          createdDate={ecr.createdAt}
+                          onClick={() => window.location.href = `/dashboard/ecr/${ecr.id}`}
+                          className={ecr.status === 'APPROVED' ? 'pr-8' : ''}
+                          linkedEntity={ecr.eco ? {
+                            type: 'ECO',
+                            id: ecr.eco.id,
+                            number: ecr.eco.ecoNumber,
+                            title: ecr.eco.title
+                          } : undefined}
+                        />
+                        {ecr.status === 'APPROVED' && !ecr.eco && (
+                          <div className="absolute -top-2 -right-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Ready for ECO
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {columnECRs.length === 0 && (
@@ -611,9 +642,19 @@ export default function ECRPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecr.status)}`}>
-                        {getStatusLabel(ecr.status)}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(ecr.status)}`}>
+                          {getStatusLabel(ecr.status)}
+                        </span>
+                        {ecr.status === 'APPROVED' && !ecr.eco && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Ready for ECO
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
                       {ecr.estimatedCostRange ? (

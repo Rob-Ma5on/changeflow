@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import WorkflowBreadcrumbs from '@/components/WorkflowBreadcrumbs';
 
 interface ECR {
   id: string;
@@ -179,6 +180,28 @@ export default function ECRDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Workflow Breadcrumbs */}
+      {ecr.eco && (
+        <WorkflowBreadcrumbs
+          currentStep="ECR"
+          ecr={{
+            id: ecr.id,
+            ecrNumber: ecr.ecrNumber,
+            title: ecr.title
+          }}
+          eco={{
+            id: ecr.eco.id,
+            ecoNumber: ecr.eco.ecoNumber,
+            title: ecr.eco.title
+          }}
+          ecn={ecr.eco.ecns?.[0] ? {
+            id: ecr.eco.ecns[0].id,
+            ecnNumber: ecr.eco.ecns[0].ecnNumber,
+            title: ecr.eco.ecns[0].title
+          } : undefined}
+        />
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -188,7 +211,7 @@ export default function ECRDetailPage() {
         <div className="flex items-center space-x-3">
           {ecr.status === 'APPROVED' && (
             <Link
-              href="/dashboard/ecr/convert"
+              href={`/dashboard/eco/new?ecrId=${ecr.id}`}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -530,24 +553,76 @@ export default function ECRDetailPage() {
         </div>
       )}
 
-      {/* No ECO Message */}
-      {!ecr.eco && ecr.status === 'APPROVED' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      {/* ECO Conversion Status Messages */}
+      {!ecr.eco && (
+        <>
+          {ecr.status === 'APPROVED' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-blue-800">Ready for ECO Conversion</h3>
+                  <p className="text-sm text-blue-700 mt-1">
+                    This ECR is approved and ready to be bundled into an ECO for implementation.
+                  </p>
+                  <Link
+                    href={`/dashboard/eco/new?ecrId=${ecr.id}`}
+                    className="mt-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    Convert to ECO →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(ecr.status === 'DRAFT' || ecr.status === 'SUBMITTED') && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-amber-800">Approval Required</h3>
+                  <p className="text-sm text-amber-700 mt-1">
+                    ECR must be approved before converting to ECO.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {ecr.status === 'REJECTED' && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">Cannot Convert to ECO</h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    Rejected ECRs cannot be converted to ECO.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {ecr.eco && ecr.status === 'IMPLEMENTED' && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <div className="flex items-center">
-            <svg className="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <h3 className="text-sm font-medium text-blue-800">Ready for ECO Conversion</h3>
-              <p className="text-sm text-blue-700 mt-1">
-                This ECR is approved and ready to be bundled into an ECO for implementation.
+              <h3 className="text-sm font-medium text-green-800">Already Linked to ECO</h3>
+              <p className="text-sm text-green-700 mt-1">
+                ECR already linked to {ecr.eco.ecoNumber} and marked as implemented.
               </p>
-              <Link
-                href="/dashboard/ecr/convert"
-                className="mt-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-              >
-                Convert to ECO →
-              </Link>
             </div>
           </div>
         </div>
