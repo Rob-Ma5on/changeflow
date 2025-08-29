@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const organizationId = session.user.organizationId;
 
-    const whereClause: { organizationId: string; status?: string } = {
+    const whereClause: any = {
       organizationId,
     };
 
