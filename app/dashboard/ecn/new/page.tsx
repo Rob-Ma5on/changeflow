@@ -12,6 +12,11 @@ interface ECO {
   ecoNumber: string;
   title: string;
   status: string;
+  ecrs?: Array<{
+    id: string;
+    ecrNumber: string;
+    title: string;
+  }>;
 }
 
 interface FormData {
