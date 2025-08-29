@@ -564,7 +564,7 @@ export default function NewECNPage() {
                   value={formData.acknowledgmentStatus}
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Status will show "Pending" until responses are received or manually marked as acknowledged
+                  Status will show &quot;Pending&quot; until responses are received or manually marked as acknowledged
                 </p>
               </div>
             </div>
@@ -698,7 +698,7 @@ export default function NewECNPage() {
                   Mark as Closed
                 </button>
                 <p className="text-sm text-gray-500">
-                  Sets closure date to today and acknowledgment status to "Acknowledged"
+                  Sets closure date to today and acknowledgment status to &quot;Acknowledged&quot;
                 </p>
               </div>
             </div>

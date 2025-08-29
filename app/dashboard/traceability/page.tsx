@@ -306,7 +306,7 @@ export default function TraceabilityPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
-              Search Results for "{searchResults.query}"
+              Search Results for &quot;{searchResults.query}&quot;
             </h2>
             <span className="text-gray-600">
               {searchResults.totalResults} result{searchResults.totalResults !== 1 ? 's' : ''} found

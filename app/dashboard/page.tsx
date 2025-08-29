@@ -381,7 +381,7 @@ export default function DashboardPage() {
           Welcome back, {session?.user?.name || 'User'}!
         </h1>
         <p className="text-gray-600 mt-2">
-          Here&apos;s what&apos;s happening with your engineering changes
+          Here&rsquo;s what&rsquo;s happening with your engineering changes
         </p>
       </div>
 
