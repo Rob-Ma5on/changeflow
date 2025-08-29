@@ -264,6 +264,11 @@ export default function ECRPage() {
     const aValue = a[sortConfig.key as keyof ECR];
     const bValue = b[sortConfig.key as keyof ECR];
     
+    // Handle null/undefined values
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+    
     if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
     if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
     return 0;
@@ -427,11 +432,8 @@ export default function ECRPage() {
         filters={filters}
         onFiltersChange={setFilters}
         statusOptions={statusOptions}
-        priorityOptions={priorityOptions}
         categoryOptions={customerImpactOptions}
-        showPriority={true}
-        showCategory={true}
-        categoryLabel="Customer Impact"
+        showAssignee={true}
         onExport={handleExport}
         exportDisabled={sortedECRs.length === 0}
         isExporting={isExporting}

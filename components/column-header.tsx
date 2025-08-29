@@ -22,7 +22,7 @@ export default function ColumnHeader({
 }: ColumnHeaderProps) {
   const isSortable = sortKey && onSort
   const isActive = currentSort?.key === sortKey
-  const direction = isActive ? currentSort.direction : null
+  const direction = isActive ? currentSort?.direction : null
 
   const handleClick = () => {
     if (isSortable) {

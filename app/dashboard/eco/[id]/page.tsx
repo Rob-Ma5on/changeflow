@@ -437,7 +437,7 @@ export default function ECODetailPage({ params }: { params: Promise<{ id: string
       <Toast
         message={toastMessage}
         type={toastType}
-        isVisible={showToast}
+        isOpen={showToast}
         onClose={() => setShowToast(false)}
       />
     </div>

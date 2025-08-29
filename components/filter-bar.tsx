@@ -104,9 +104,7 @@ export default function FilterBar({
               onChange={(e) => updateFilter('search', e.target.value)}
               className="pl-10 pr-3 py-2 rounded-md focus:outline-none text-gray-900 w-full"
               style={{ 
-                border: '1px solid #E5E7EB',
-                focusRingColor: '#0066CC',
-                focusBorderColor: '#0066CC'
+                border: '1px solid #E5E7EB'
               }}
               onFocus={(e) => {
                 e.target.style.outline = '2px solid #0066CC';
@@ -148,9 +146,7 @@ export default function FilterBar({
               onChange={(e) => updateFilter('search', e.target.value)}
               className="pl-10 pr-3 py-2 rounded-md focus:outline-none text-gray-900 w-full"
               style={{ 
-                border: '1px solid #E5E7EB',
-                focusRingColor: '#0066CC',
-                focusBorderColor: '#0066CC'
+                border: '1px solid #E5E7EB'
               }}
               onFocus={(e) => {
                 e.target.style.outline = '2px solid #0066CC';

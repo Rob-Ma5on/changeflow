@@ -174,11 +174,23 @@ function ECNDetailModal({ ecn, isOpen, onClose }: ECNDetailModalProps) {
                       Completed: {ecn.eco.completedAt ? new Date(ecn.eco.completedAt).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
-                  {ecn.eco.ecr && (
+                  {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && (
                     <div className="text-sm text-gray-600">
-                      <strong>Original ECR:</strong> {ecn.eco.ecr.ecrNumber} - {ecn.eco.ecr.title}
+                      <strong>Original ECR{ecn.eco.ecrs.length > 1 ? 's' : ''}:</strong>{' '}
+                      {ecn.eco.ecrs.map((ecr, index) => (
+                        <span key={ecr.id}>
+                          {ecr.ecrNumber} - {ecr.title}
+                          {index < (ecn.eco?.ecrs?.length || 0) - 1 ? ', ' : ''}
+                        </span>
+                      ))}
                       <br />
-                      <strong>Submitted by:</strong> {ecn.eco.ecr.submitter.name}
+                      <strong>Submitted by:</strong>{' '}
+                      {ecn.eco.ecrs.map((ecr, index) => (
+                        <span key={ecr.id}>
+                          {ecr.submitter.name}
+                          {index < (ecn.eco?.ecrs?.length || 0) - 1 ? ', ' : ''}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -321,6 +333,11 @@ export default function ECNPage() {
     const aValue = a[sortConfig.key as keyof ECN];
     const bValue = b[sortConfig.key as keyof ECN];
     
+    // Handle null/undefined values
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+    
     if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
     if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
     return 0;
@@ -421,8 +438,6 @@ export default function ECNPage() {
         assigneeOptions={assigneeOptions}
         categoryOptions={implementationStatusOptions}
         showAssignee={true}
-        showCategory={true}
-        categoryLabel="Implementation Status"
         onExport={handleExport}
         exportDisabled={sortedEcns.length === 0}
         isExporting={isExporting}

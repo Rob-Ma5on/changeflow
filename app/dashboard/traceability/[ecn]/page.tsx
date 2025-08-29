@@ -117,7 +117,7 @@ function StatusBadge({ status, type }: { status: string; type: 'ECR' | 'ECO' | '
         default: 'bg-gray-100 text-gray-800'
       }
     };
-    return colors[type][status] || colors[type].default;
+    return colors[type][status as keyof typeof colors[typeof type]] || colors[type].default;
   };
 
   return (

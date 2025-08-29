@@ -50,7 +50,7 @@ interface ECO {
 interface Column {
   id: string;
   title: string;
-  status: ECO['status'];
+  status: 'BACKLOG' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED';
   count: number;
 }
 
@@ -468,6 +468,11 @@ export default function ECOPage() {
     const aValue = a[sortConfig.key as keyof ECO];
     const bValue = b[sortConfig.key as keyof ECO];
     
+    // Handle null/undefined values
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+    
     if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
     if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
     return 0;
@@ -592,8 +597,6 @@ export default function ECOPage() {
         assigneeOptions={assigneeOptions}
         categoryOptions={materialDispositionOptions}
         showAssignee={true}
-        showCategory={true}
-        categoryLabel="Material Disposition"
         onExport={handleExport}
         exportDisabled={sortedEcos.length === 0}
         isExporting={isExporting}

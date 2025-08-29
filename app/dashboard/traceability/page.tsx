@@ -204,20 +204,20 @@ export default function TraceabilityPage() {
                                  isECN ? `/dashboard/ecn/${item.id}` :
                                  `/dashboard/${chain.type.toLowerCase()}/${item.id}`;
 
-                  const itemNumber = isECR ? item.ecrNumber :
-                                   isECO ? item.ecoNumber :
-                                   isECN ? item.ecnNumber :
-                                   item.number;
+                  const itemNumber = isECR ? (item as any).ecrNumber :
+                                   isECO ? (item as any).ecoNumber :
+                                   isECN ? (item as any).ecnNumber :
+                                   (item as any).number;
 
                   const itemType = isECR ? 'ECR' :
                                  isECO ? 'ECO' :
                                  isECN ? 'ECN' :
-                                 item.type;
+                                 (item as any).type;
 
                   return (
                     <div 
                       key={item.id || itemIndex} 
-                      className={`${colorClasses[segment.color]} border rounded-lg ${isMain ? 'p-4' : 'p-3'} text-center`}
+                      className={`${colorClasses[segment.color as keyof typeof colorClasses]} border rounded-lg ${isMain ? 'p-4' : 'p-3'} text-center`}
                     >
                       <div className="flex items-center space-x-2 mb-1">
                         <span className={isMain ? "text-lg" : "text-sm"}>{getTypeIcon(itemType)}</span>
@@ -231,8 +231,8 @@ export default function TraceabilityPage() {
                       <p className="text-xs text-gray-600 mb-2">{item.title}</p>
                       <div className="flex items-center justify-center space-x-2">
                         {getStatusBadge(item.status, itemType)}
-                        {isMain && <span className="text-xs text-gray-500">by {item.submitter.name}</span>}
-                        {isECR && <span className="text-xs text-gray-500">by {item.submitter.name}</span>}
+                        {isMain && <span className="text-xs text-gray-500">by {(item as any).submitter?.name}</span>}
+                        {isECR && <span className="text-xs text-gray-500">by {(item as any).submitter?.name}</span>}
                       </div>
                     </div>
                   );
