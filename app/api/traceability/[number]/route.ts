@@ -147,18 +147,7 @@ export async function GET(
     const timeline = [];
 
     // ECR events
-    traceabilityData.ecrs.forEach((ecr: {
-      id: string;
-      ecrNumber: string;
-      title: string;
-      createdAt: string;
-      submittedAt?: string;
-      approvedAt?: string;
-      rejectedAt?: string;
-      submitter: { name: string };
-      assignee?: { name: string };
-      approver?: { name: string };
-    }) => {
+    traceabilityData.ecrs.forEach((ecr: any) => {
       if (ecr.createdAt) {
         timeline.push({
           type: 'ECR_CREATED',
