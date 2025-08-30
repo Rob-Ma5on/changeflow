@@ -88,6 +88,14 @@ export async function PATCH(
       );
     }
 
+    const validECNStatuses = ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'DISTRIBUTED', 'EFFECTIVE', 'CANCELLED'];
+    if (!validECNStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${validECNStatuses.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
     const organizationId = session.user.organizationId;
 
     // Verify the ECN exists and belongs to the organization

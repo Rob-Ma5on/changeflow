@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
 import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
-import { exportToExcel, formatECOsForExport, ExportButton } from '@/components/export-utils';
+import { exportToExcel, formatECOsForExport } from '@/components/export-utils';
 import EntityCard from '@/components/entity-card';
 
 interface ECO {
@@ -54,214 +53,6 @@ interface Column {
   count: number;
 }
 
-interface ECODetailModalProps {
-  eco: ECO | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onStatusUpdate: (ecoId: string, newStatus: ECO['status']) => void;
-}
-
-function ECODetailModal({ eco, isOpen, onClose, onStatusUpdate }: ECODetailModalProps) {
-  const [currentStatus, setCurrentStatus] = useState(eco?.status || 'BACKLOG');
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  useEffect(() => {
-    if (eco) {
-      setCurrentStatus(eco.status);
-    }
-  }, [eco]);
-
-  if (!isOpen || !eco) return null;
-
-  const statusOptions = [
-    { value: 'DRAFT', label: 'Draft' },
-    { value: 'SUBMITTED', label: 'Submitted' },
-    { value: 'APPROVED', label: 'Approved' },
-    { value: 'BACKLOG', label: 'Backlog' },
-    { value: 'IN_PROGRESS', label: 'In Progress' },
-    { value: 'REVIEW', label: 'Review' },
-    { value: 'COMPLETED', label: 'Completed' },
-    { value: 'CANCELLED', label: 'Cancelled' }
-  ];
-
-  const handleStatusChange = async (newStatus: ECO['status']) => {
-    if (newStatus === eco.status) return;
-
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`/api/eco/${eco.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (response.ok) {
-        setCurrentStatus(newStatus);
-        onStatusUpdate(eco.id, newStatus);
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Failed to update ECO status:', errorData);
-        alert(`Failed to update status: ${errorData.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error updating ECO status:', error);
-      alert('Failed to update status: Network error');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{eco.ecoNumber}</h2>
-              <p className="text-gray-600">{eco.title}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            {/* Status and Priority */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select
-                  value={currentStatus}
-                  onChange={(e) => handleStatusChange(e.target.value as ECO['status'])}
-                  disabled={isUpdating}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white disabled:bg-gray-100"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                {isUpdating && (
-                  <p className="text-xs text-blue-600 mt-1">Updating status...</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Priority</label>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  eco.priority === 'LOW' ? 'text-white' :
-                  eco.priority === 'MEDIUM' ? 'text-white' :
-                  eco.priority === 'HIGH' ? 'text-white' :
-                  'text-white'
-                }`}
-                style={{
-                  backgroundColor: 
-                    eco.priority === 'LOW' ? '#22C55E' :
-                    eco.priority === 'MEDIUM' ? '#EAB308' :
-                    eco.priority === 'HIGH' ? '#EF4444' :
-                    '#6B7280'
-                }}>
-                  {eco.priority}
-                </span>
-              </div>
-            </div>
-
-            {/* Assignee */}
-            {eco.assignee && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Assigned Engineer</label>
-                <p className="text-gray-900">{eco.assignee.name}</p>
-              </div>
-            )}
-
-            {/* Linked ECRs */}
-            {eco.ecrs && eco.ecrs.length > 0 ? (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bundled ECRs ({eco.ecrs.length})</label>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {eco.ecrs.map((ecr) => (
-                    <div key={ecr.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                      <span>📝</span>
-                      <Link 
-                        href={`/dashboard/ecr/${ecr.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                      >
-                        {ecr.ecrNumber}
-                      </Link>
-                      <span className="text-gray-600 text-sm truncate">
-                        {ecr.title}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : eco.ecr && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Linked ECR</label>
-                <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                  <span>📝</span>
-                  <Link 
-                    href={`/dashboard/ecr/${eco.ecr.id}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    {eco.ecr.ecrNumber}
-                  </Link>
-                  <span className="text-gray-600">
-                    {eco.ecr.title}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Target Date */}
-            {eco.targetDate && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Target Date</label>
-                <p className="text-gray-900">
-                  {new Date(eco.targetDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-              </div>
-            )}
-
-            {/* Created Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Created</label>
-              <p className="text-gray-900">
-                {new Date(eco.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function ECOCard({ eco, onClick, onCreateECN }: { eco: ECO; onClick: () => void; onCreateECN?: (ecoId: string) => void }) {
   return (
@@ -304,10 +95,9 @@ function ECOCard({ eco, onClick, onCreateECN }: { eco: ECO; onClick: () => void;
   );
 }
 
-function KanbanColumn({ column, ecos, onECOClick, onCreateECN }: {
+function KanbanColumn({ column, ecos, onCreateECN }: {
   column: Column;
   ecos: ECO[];
-  onECOClick: (eco: ECO) => void;
   onCreateECN?: (ecoId: string) => void;
 }) {
   return (
@@ -324,7 +114,7 @@ function KanbanColumn({ column, ecos, onECOClick, onCreateECN }: {
           <ECOCard
             key={eco.id}
             eco={eco}
-            onClick={() => onECOClick(eco)}
+            onClick={() => window.location.href = `/dashboard/eco/${eco.id}`}
             onCreateECN={onCreateECN}
           />
         ))}
@@ -340,7 +130,6 @@ function KanbanColumn({ column, ecos, onECOClick, onCreateECN }: {
 }
 
 export default function ECOPage() {
-  const { data: session } = useSession();
   const router = useRouter();
   const [ecos, setEcos] = useState<ECO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -354,8 +143,6 @@ export default function ECOPage() {
     dateRange: { start: '', end: '' }
   });
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ key: '', direction: null });
-  const [selectedECO, setSelectedECO] = useState<ECO | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [showToast, setShowToast] = useState(false);
@@ -515,21 +302,6 @@ export default function ECOPage() {
   }, [] as { value: string; label: string }[]);
 
 
-  const handleECOClick = (eco: ECO) => {
-    setSelectedECO(eco);
-    setIsModalOpen(true);
-  };
-
-  const handleStatusUpdate = (ecoId: string, newStatus: ECO['status']) => {
-    setEcos(prevEcos =>
-      prevEcos.map(eco =>
-        eco.id === ecoId ? { ...eco, status: newStatus } : eco
-      )
-    );
-    setToastMessage('ECO status updated successfully');
-    setToastType('success');
-    setShowToast(true);
-  };
 
   const handleCreateECN = (ecoId: string) => {
     // Redirect to ECN form with ECO pre-population
@@ -611,7 +383,6 @@ export default function ECOPage() {
               key={column.id}
               column={column}
               ecos={getEcosForColumn(column.status)}
-              onECOClick={handleECOClick}
               onCreateECN={handleCreateECN}
             />
           ))}
@@ -683,7 +454,7 @@ export default function ECOPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedEcos.map((eco) => (
                   <tr key={eco.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium cursor-pointer" onClick={() => handleECOClick(eco)}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium cursor-pointer" onClick={() => window.location.href = `/dashboard/eco/${eco.id}`}>
                       <span className="text-blue-600 hover:text-blue-800">
                         {eco.ecoNumber}
                       </span>
@@ -758,7 +529,7 @@ export default function ECOPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleECOClick(eco)}
+                          onClick={() => window.location.href = `/dashboard/eco/${eco.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           View
@@ -824,16 +595,6 @@ export default function ECOPage() {
         </div>
       </div>
 
-      {/* ECO Detail Modal */}
-      <ECODetailModal
-        eco={selectedECO}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedECO(null);
-        }}
-        onStatusUpdate={handleStatusUpdate}
-      />
 
       {/* Toast Notifications */}
       <Toast

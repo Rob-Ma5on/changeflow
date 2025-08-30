@@ -28,6 +28,14 @@ export async function PATCH(
       );
     }
 
+    const validECOStatuses = ['DRAFT', 'SUBMITTED', 'APPROVED', 'BACKLOG', 'IN_PROGRESS', 'REVIEW', 'COMPLETED', 'CANCELLED'];
+    if (!validECOStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${validECOStatuses.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
     const organizationId = session.user.organizationId;
 
     // Verify the ECO exists and belongs to the organization

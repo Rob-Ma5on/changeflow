@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ViewToggle, { ViewMode } from '@/components/view-toggle';
 import FilterBar, { FilterState } from '@/components/filter-bar';
 import ColumnHeader, { SortDirection } from '@/components/column-header';
-import { exportToExcel, formatECNsForExport, ExportButton } from '@/components/export-utils';
+import { exportToExcel, formatECNsForExport } from '@/components/export-utils';
 import EntityCard from '@/components/entity-card';
 
 interface ECN {
@@ -39,209 +38,8 @@ interface ECN {
   };
 }
 
-interface ECNDetailModalProps {
-  ecn: ECN | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-function ECNDetailModal({ ecn, isOpen, onClose }: ECNDetailModalProps) {
-  if (!isOpen || !ecn) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{ecn.ecnNumber}</h2>
-              <p className="text-gray-600">{ecn.title}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            {/* Traceability Chain */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-lg font-medium text-blue-900 mb-3">Traceability Chain</h3>
-              <div className="flex items-center flex-wrap gap-2 text-sm">
-                {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && (
-                  <>
-                    {ecn.eco.ecrs.map((ecr, index) => (
-                      <div key={ecr.id} className="flex items-center space-x-2">
-                        <Link
-                          href={`/dashboard/ecr/${ecr.id}`}
-                          className="bg-gray-100 text-gray-800 px-2 py-1 rounded hover:bg-gray-200 flex items-center space-x-1"
-                        >
-                          <span>📝</span>
-                          <span>{ecr.ecrNumber}</span>
-                        </Link>
-                        {index === (ecn.eco?.ecrs?.length ?? 0) - 1 && (
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        )}
-                      </div>
-                    ))}
-                  </>
-                )}
-                {ecn.eco && (
-                  <>
-                    <Link
-                      href={`/dashboard/eco/${ecn.eco.id}`}
-                      className="bg-blue-100 text-blue-800 px-2 py-1 rounded hover:bg-blue-200"
-                    >
-                      {ecn.eco.ecoNumber}
-                    </Link>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </>
-                )}
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium">
-                  {ecn.ecnNumber}
-                </span>
-              </div>
-              <p className="text-blue-700 text-sm mt-2">
-                This ECN notifies of changes implemented through the linked ECO
-                {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && 
-                  ` and ${ecn.eco.ecrs.length} original ECR${ecn.eco.ecrs.length > 1 ? 's' : ''}`
-                }
-              </p>
-            </div>
-
-            {/* Status and Dates */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  ecn.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' :
-                  ecn.status === 'PENDING_APPROVAL' ? 'bg-amber-100 text-amber-800' :
-                  ecn.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                  ecn.status === 'DISTRIBUTED' ? 'bg-blue-100 text-blue-800' :
-                  ecn.status === 'EFFECTIVE' ? 'bg-green-100 text-green-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {ecn.status.replace('_', ' ')}
-                </span>
-              </div>
-              {ecn.distributedAt && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Distributed Date</label>
-                  <p className="text-gray-900">
-                    {new Date(ecn.distributedAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
-              )}
-              {ecn.effectiveDate && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Effective Date</label>
-                  <p className="text-gray-900">
-                    {new Date(ecn.effectiveDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Linked ECO Information */}
-            {ecn.eco && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Linked ECO</label>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <Link 
-                      href={`/dashboard/eco`}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      {ecn.eco.ecoNumber}: {ecn.eco.title}
-                    </Link>
-                    <span className="text-sm text-gray-500">
-                      Completed: {ecn.eco.completedAt ? new Date(ecn.eco.completedAt).toLocaleDateString() : 'N/A'}
-                    </span>
-                  </div>
-                  {ecn.eco?.ecrs && ecn.eco.ecrs.length > 0 && (
-                    <div className="text-sm text-gray-600">
-                      <strong>Original ECR{ecn.eco.ecrs.length > 1 ? 's' : ''}:</strong>{' '}
-                      {ecn.eco.ecrs.map((ecr, index) => (
-                        <span key={ecr.id}>
-                          {ecr.ecrNumber} - {ecr.title}
-                          {index < (ecn.eco?.ecrs?.length || 0) - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                      <br />
-                      <strong>Submitted by:</strong>{' '}
-                      {ecn.eco.ecrs.map((ecr, index) => (
-                        <span key={ecr.id}>
-                          {ecr.submitter.name}
-                          {index < (ecn.eco?.ecrs?.length || 0) - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ECN Details */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
-              <p className="text-gray-900 mt-1">{ecn.description}</p>
-            </div>
-
-            {/* Assignee */}
-            {ecn.assignee && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Assigned To</label>
-                <p className="text-gray-900">{ecn.assignee.name}</p>
-              </div>
-            )}
-
-            {/* Created Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Created</label>
-              <p className="text-gray-900">
-                {new Date(ecn.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ECNPage() {
-  const { data: session } = useSession();
   const [ecns, setEcns] = useState<ECN[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
@@ -254,8 +52,6 @@ export default function ECNPage() {
     dateRange: { start: '', end: '' }
   });
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: SortDirection }>({ key: '', direction: null });
-  const [selectedECN, setSelectedECN] = useState<ECN | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
@@ -355,10 +151,6 @@ export default function ECNPage() {
     return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleECNClick = (ecn: ECN) => {
-    setSelectedECN(ecn);
-    setIsModalOpen(true);
-  };
 
   const statusOptions = [
     { value: 'DRAFT', label: 'Draft' },
@@ -476,7 +268,7 @@ export default function ECNPage() {
                       }}
                       createdDate={ecn.createdAt}
                       dueDate={ecn.effectiveDate}
-                      onClick={() => handleECNClick(ecn)}
+                      onClick={() => window.location.href = `/dashboard/ecn/${ecn.id}`}
                       linkedEntity={ecn.eco ? {
                         type: 'ECO',
                         id: ecn.eco.id,
@@ -556,7 +348,7 @@ export default function ECNPage() {
                     <tr 
                       key={ecn.id} 
                       className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleECNClick(ecn)}
+                      onClick={() => window.location.href = `/dashboard/ecn/${ecn.id}`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <span className="text-purple-600 hover:text-purple-800">
@@ -673,15 +465,6 @@ export default function ECNPage() {
         </div>
       </div>
 
-      {/* ECN Detail Modal */}
-      <ECNDetailModal
-        ecn={selectedECN}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedECN(null);
-        }}
-      />
     </div>
   );
 }
