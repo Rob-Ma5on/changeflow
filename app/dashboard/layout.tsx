@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -84,21 +85,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="text-xl font-bold" style={{ color: '#0066CC' }}>
             ChangeFlow
           </Link>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-md text-gray-400 hover:text-gray-600"
-          >
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-md text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-white"
+            >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-          </button>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -111,23 +115,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center h-16 px-6 border-b border-gray-200">
+          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
             <Link href="/dashboard" className="text-xl font-bold" style={{ color: '#0066CC' }}>
               ChangeFlow
             </Link>
+            <div className="hidden lg:block">
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Organization Info */}
-          <div className="px-6 py-4 border-b border-gray-200" style={{ backgroundColor: '#F9FAFB' }}>
-            <p className="text-sm font-medium text-gray-900">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
               {session?.user?.organization || 'Organization'}
             </p>
-            <p className="text-xs text-gray-500">Engineering Change Management</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Engineering Change Management</p>
           </div>
 
           {/* Navigation */}
@@ -143,7 +150,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
                       ? 'border-r-2'
-                      : 'text-gray-600 hover:text-gray-900'
+                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                   }`}
                   style={{
                     backgroundColor: isActive ? '#DBEAFE' : 'transparent',
@@ -152,7 +159,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.backgroundColor = '#F9FAFB';
+                      const isDark = document.documentElement.classList.contains('dark');
+                      e.currentTarget.style.backgroundColor = isDark ? '#374151' : '#F9FAFB';
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -162,7 +170,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   }}
                 >
                   <span 
-                    className={`mr-3 ${isActive ? '' : 'text-gray-400 group-hover:text-gray-500'}`}
+                    className={`mr-3 ${isActive ? '' : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300'}`}
                     style={{ color: isActive ? '#0066CC' : undefined }}
                   >
                     {item.icon}
@@ -174,11 +182,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </nav>
 
           {/* User Menu */}
-          <div className="border-t border-gray-200 p-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4">
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center w-full px-3 py-2 text-sm text-left text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+                className="flex items-center w-full px-3 py-2 text-sm text-left text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
               >
                 <div className="flex-shrink-0 mr-3">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#0066CC' }}>
@@ -188,10 +196,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {session?.user?.name || 'User'}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {session?.user?.email}
                   </p>
                 </div>
@@ -207,11 +215,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Dropdown Menu */}
               {userMenuOpen && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-md shadow-lg border border-gray-200">
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
                   <div className="py-1">
                     <button
                       onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <svg className="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -227,7 +235,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className="lg:pl-64 pt-16 lg:pt-0" style={{ backgroundColor: '#F9FAFB' }}>
+      <div className="lg:pl-64 pt-16 lg:pt-0 bg-gray-50 dark:bg-gray-900">
         <main className="p-4 sm:p-6 lg:p-8">
           {children}
         </main>

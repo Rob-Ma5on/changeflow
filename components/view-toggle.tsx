@@ -10,20 +10,21 @@ interface ViewToggleProps {
 
 export default function ViewToggle({ viewMode, onViewChange }: ViewToggleProps) {
   return (
-    <div className="inline-flex rounded-lg border border-gray-300 bg-white" style={{ borderColor: '#E5E7EB' }}>
+    <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
       <button
         onClick={() => onViewChange('kanban')}
         className={`px-3 py-2 text-sm font-medium rounded-l-lg transition-colors ${
           viewMode === 'kanban'
             ? 'text-white'
-            : 'text-gray-700'
+            : 'text-gray-700 dark:text-gray-300'
         }`}
         style={{
           backgroundColor: viewMode === 'kanban' ? '#0066CC' : 'transparent',
         }}
         onMouseEnter={(e) => {
           if (viewMode !== 'kanban') {
-            e.currentTarget.style.backgroundColor = '#F9FAFB';
+            const isDark = document.documentElement.classList.contains('dark');
+            e.currentTarget.style.backgroundColor = isDark ? '#374151' : '#F9FAFB';
           }
         }}
         onMouseLeave={(e) => {
@@ -44,14 +45,15 @@ export default function ViewToggle({ viewMode, onViewChange }: ViewToggleProps) 
         className={`px-3 py-2 text-sm font-medium rounded-r-lg transition-colors ${
           viewMode === 'list'
             ? 'text-white'
-            : 'text-gray-700'
+            : 'text-gray-700 dark:text-gray-300'
         }`}
         style={{
           backgroundColor: viewMode === 'list' ? '#0066CC' : 'transparent',
         }}
         onMouseEnter={(e) => {
           if (viewMode !== 'list') {
-            e.currentTarget.style.backgroundColor = '#F9FAFB';
+            const isDark = document.documentElement.classList.contains('dark');
+            e.currentTarget.style.backgroundColor = isDark ? '#374151' : '#F9FAFB';
           }
         }}
         onMouseLeave={(e) => {

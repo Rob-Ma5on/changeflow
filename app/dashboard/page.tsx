@@ -306,21 +306,21 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {/* Welcome Header Skeleton */}
         <div>
-          <div className="h-10 bg-gray-200 rounded w-72 animate-pulse"></div>
-          <div className="h-5 bg-gray-200 rounded w-80 mt-2 animate-pulse"></div>
+          <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-72 animate-pulse"></div>
+          <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-80 mt-2 animate-pulse"></div>
         </div>
 
         {/* Stats Cards Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[1, 2, 3, 4].map((card) => (
-            <div key={card} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div key={card} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-lg animate-pulse"></div>
                 </div>
                 <div className="ml-4 flex-1">
-                  <div className="h-4 bg-gray-200 rounded w-20 mb-2 animate-pulse"></div>
-                  <div className="h-6 bg-gray-200 rounded w-12 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-2 animate-pulse"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-12 animate-pulse"></div>
                 </div>
               </div>
             </div>
@@ -328,15 +328,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions Skeleton */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="h-6 bg-gray-200 rounded w-32 mb-4 animate-pulse"></div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-32 mb-4 animate-pulse"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((action) => (
-              <div key={action} className="flex items-center p-4 border border-gray-200 rounded-lg">
-                <div className="w-10 h-10 bg-gray-200 rounded-lg mr-4 animate-pulse"></div>
+              <div key={action} className="flex items-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-lg mr-4 animate-pulse"></div>
                 <div>
-                  <div className="h-4 bg-gray-200 rounded w-20 mb-1 animate-pulse"></div>
-                  <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-1 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-24 animate-pulse"></div>
                 </div>
               </div>
             ))}
@@ -344,24 +344,24 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity Skeleton */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
           </div>
           <div className="p-6">
             <div className="space-y-6">
               {[1, 2, 3, 4, 5].map((activity) => (
                 <div key={activity} className="flex items-start space-x-3">
-                  <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="h-10 w-10 bg-gray-200 dark:bg-gray-600 rounded-full animate-pulse"></div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24 animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16 animate-pulse"></div>
                     </div>
-                    <div className="h-4 bg-gray-200 rounded w-48 mb-2 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-48 mb-2 animate-pulse"></div>
                     <div className="flex items-center space-x-2">
-                      <div className="h-5 bg-gray-200 rounded-full w-16 animate-pulse"></div>
-                      <div className="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded-full w-16 animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-20 animate-pulse"></div>
                     </div>
                   </div>
                 </div>
@@ -377,25 +377,25 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Welcome back, {session?.user?.name || 'User'}!
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-600 dark:text-gray-300 mt-2">
           Here&rsquo;s what&rsquo;s happening with your engineering changes
         </p>
       </div>
 
       {/* Quick Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Filters</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Filters</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             href={getQuickFilterUrl('my-items')}
-            className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
           >
             <div>
-              <p className="font-medium text-gray-900">My Items</p>
-              <p className="text-sm text-gray-500">Assigned to me</p>
+              <p className="font-medium text-gray-900 dark:text-white">My Items</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Assigned to me</p>
             </div>
             <span className="bg-blue-100 text-blue-800 text-lg font-semibold px-3 py-1 rounded-full">
               {stats.myItems.assigned}
@@ -407,8 +407,8 @@ export default function DashboardPage() {
             className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors"
           >
             <div>
-              <p className="font-medium text-gray-900">High Priority</p>
-              <p className="text-sm text-gray-500">Critical & High</p>
+              <p className="font-medium text-gray-900 dark:text-white">High Priority</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Critical & High</p>
             </div>
             <span className="bg-red-100 text-red-800 text-lg font-semibold px-3 py-1 rounded-full">
               {stats.highPriorityItems}
@@ -420,8 +420,8 @@ export default function DashboardPage() {
             className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-colors"
           >
             <div>
-              <p className="font-medium text-gray-900">Customer Impact</p>
-              <p className="text-sm text-gray-500">Direct impact items</p>
+              <p className="font-medium text-gray-900 dark:text-white">Customer Impact</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Direct impact items</p>
             </div>
             <span className="bg-orange-100 text-orange-800 text-lg font-semibold px-3 py-1 rounded-full">
               {stats.customerImpactItems}
@@ -433,8 +433,8 @@ export default function DashboardPage() {
             className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
           >
             <div>
-              <p className="font-medium text-gray-900">Due This Week</p>
-              <p className="text-sm text-gray-500">Target dates</p>
+              <p className="font-medium text-gray-900 dark:text-white">Due This Week</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Target dates</p>
             </div>
             <span className="bg-yellow-100 text-yellow-800 text-lg font-semibold px-3 py-1 rounded-full">
               {stats.dueThisWeek}
@@ -498,7 +498,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{item.number}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{item.number}</p>
                       <p className="text-sm text-gray-600">{item.title}</p>
                       {item.assignee && (
                         <p className="text-xs text-gray-500">Assigned to: {item.assignee}</p>
@@ -621,8 +621,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <p className="font-medium text-gray-900">New ECR</p>
-              <p className="text-sm text-gray-500">Create change request</p>
+              <p className="font-medium text-gray-900 dark:text-white">New ECR</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Create change request</p>
             </div>
           </Link>
 
@@ -636,8 +636,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <p className="font-medium text-gray-900">View ECOs</p>
-              <p className="text-sm text-gray-500">Track implementation</p>
+              <p className="font-medium text-gray-900 dark:text-white">View ECOs</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Track implementation</p>
             </div>
           </Link>
 
@@ -653,8 +653,8 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <p className="font-medium text-gray-900">Review ECNs</p>
-              <p className="text-sm text-gray-500">Approve notifications</p>
+              <p className="font-medium text-gray-900 dark:text-white">Review ECNs</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Approve notifications</p>
             </div>
           </Link>
         </div>

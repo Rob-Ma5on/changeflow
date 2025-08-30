@@ -46,9 +46,9 @@ export function LoadingOverlay({
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${className}`}>
-      <div className="bg-white rounded-lg p-6 flex flex-col items-center space-y-4 shadow-xl">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex flex-col items-center space-y-4 shadow-xl">
         <LoadingSpinner size="lg" />
-        <p className="text-gray-700 font-medium">{message}</p>
+        <p className="text-gray-700 dark:text-gray-300 font-medium">{message}</p>
       </div>
     </div>
   )

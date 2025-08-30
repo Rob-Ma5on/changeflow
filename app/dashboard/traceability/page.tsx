@@ -179,7 +179,7 @@ export default function TraceabilityPage() {
     const completeChain = buildCompleteChain();
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
         {/* Linear Chain Display */}
         <div className="flex flex-col items-center space-y-4">
           {completeChain.map((segment, segmentIndex) => (
@@ -193,10 +193,10 @@ export default function TraceabilityPage() {
                   const isMain = segment.isMain;
                   
                   const colorClasses = {
-                    gray: 'bg-gray-50 border-gray-200 text-gray-600',
-                    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-600',
-                    blue: isMain ? 'bg-blue-50 border-2 border-blue-200 text-blue-600' : 'bg-blue-50 border-blue-200 text-blue-600',
-                    green: 'bg-green-50 border-green-200 text-green-600'
+                    gray: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300',
+                    yellow: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400',
+                    blue: isMain ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400',
+                    green: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-600 dark:text-green-400'
                   };
 
                   const linkPath = isECR ? `/dashboard/ecr/${item.id}` :
@@ -228,11 +228,11 @@ export default function TraceabilityPage() {
                           {itemNumber}
                         </Link>
                       </div>
-                      <p className="text-xs text-gray-600 mb-2">{item.title}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">{item.title}</p>
                       <div className="flex items-center justify-center space-x-2">
                         {getStatusBadge(item.status, itemType)}
-                        {isMain && <span className="text-xs text-gray-500">by {(item as any).submitter?.name}</span>}
-                        {isECR && <span className="text-xs text-gray-500">by {(item as any).submitter?.name}</span>}
+                        {isMain && <span className="text-xs text-gray-500 dark:text-gray-400">by {(item as any).submitter?.name}</span>}
+                        {isECR && <span className="text-xs text-gray-500 dark:text-gray-400">by {(item as any).submitter?.name}</span>}
                       </div>
                     </div>
                   );
@@ -241,16 +241,16 @@ export default function TraceabilityPage() {
 
               {/* Arrow (except for last segment) */}
               {segmentIndex < completeChain.length - 1 && (
-                <div className="text-gray-400 text-xl">↓</div>
+                <div className="text-gray-400 dark:text-gray-500 text-xl">↓</div>
               )}
             </div>
           ))}
         </div>
 
         {/* Summary */}
-        <div className="mt-6 pt-4 border-t border-gray-200 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Traceability Summary</h4>
-          <p className="text-sm text-blue-700">
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">Traceability Summary</h4>
+          <p className="text-sm text-blue-700 dark:text-blue-300">
             {chain.type === 'ECR' && chain.childECO && chain.childECNs && chain.childECNs.length > 0 && 
               `ECR ${chain.number} was implemented through ${chain.childECO.ecoNumber} and communicated via ${chain.childECNs.map(ecn => ecn.ecnNumber).join(', ')}`}
             {chain.type === 'ECO' && chain.linkedECRs && chain.linkedECRs.length > 0 && chain.childECNs && chain.childECNs.length > 0 &&
@@ -266,21 +266,21 @@ export default function TraceabilityPage() {
   };
 
   if (!session) {
-    return <div>Loading...</div>;
+    return <div className="text-gray-900 dark:text-white">Loading...</div>;
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Traceability Search</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Traceability Search</h1>
+        <p className="text-gray-600 dark:text-gray-300">
           Search for any ECR, ECO, or ECN number to view the complete traceability chain
         </p>
       </div>
 
       {/* Search Form */}
-      <div className="bg-white shadow rounded-lg p-6 mb-8">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8 border border-gray-200 dark:border-gray-700">
         <form onSubmit={handleSearch} className="flex space-x-4">
           <div className="flex-1">
             <input
@@ -288,13 +288,13 @@ export default function TraceabilityPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Enter ECR, ECO, or ECN number (e.g., ECR-25-001, ECO-25-001, ECN-25-001)"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
           <button
             type="submit"
             disabled={loading || !searchQuery.trim()}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 dark:focus:ring-offset-gray-800"
           >
             {loading ? 'Searching...' : 'Search'}
           </button>
@@ -305,18 +305,18 @@ export default function TraceabilityPage() {
       {searchResults && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               Search Results for &quot;{searchResults.query}&quot;
             </h2>
-            <span className="text-gray-600">
+            <span className="text-gray-600 dark:text-gray-300">
               {searchResults.totalResults} result{searchResults.totalResults !== 1 ? 's' : ''} found
             </span>
           </div>
 
           {searchResults.chains.length === 0 ? (
-            <div className="bg-white shadow rounded-lg p-8 text-center">
-              <p className="text-gray-500 text-lg">No results found for your search query.</p>
-              <p className="text-gray-400 text-sm mt-2">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center border border-gray-200 dark:border-gray-700">
+              <p className="text-gray-500 dark:text-gray-400 text-lg">No results found for your search query.</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
                 Try searching for a specific ECR, ECO, or ECN number or keywords from titles.
               </p>
             </div>
@@ -330,9 +330,9 @@ export default function TraceabilityPage() {
 
       {/* Help Text */}
       {!searchResults && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Use Traceability Search</h3>
-          <div className="text-blue-800 space-y-2">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-200 mb-3">How to Use Traceability Search</h3>
+          <div className="text-blue-800 dark:text-blue-300 space-y-2">
             <p>• Search by number: ECR-25-001, ECO-25-001, ECN-25-001</p>
             <p>• Search by title or description keywords</p>
             <p>• View complete relationship chains between ECRs, ECOs, and ECNs</p>
@@ -340,26 +340,26 @@ export default function TraceabilityPage() {
           </div>
           
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded border">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-600">
               <div className="flex items-center space-x-2 mb-2">
                 <span>📝</span>
-                <strong>ECR</strong>
+                <strong className="text-gray-900 dark:text-white">ECR</strong>
               </div>
-              <p className="text-sm text-gray-600">Engineering Change Request - Initiates the change process</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Engineering Change Request - Initiates the change process</p>
             </div>
-            <div className="bg-white p-4 rounded border">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-600">
               <div className="flex items-center space-x-2 mb-2">
                 <span>🔧</span>
-                <strong>ECO</strong>
+                <strong className="text-gray-900 dark:text-white">ECO</strong>
               </div>
-              <p className="text-sm text-gray-600">Engineering Change Order - Approves and implements changes</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Engineering Change Order - Approves and implements changes</p>
             </div>
-            <div className="bg-white p-4 rounded border">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-gray-200 dark:border-gray-600">
               <div className="flex items-center space-x-2 mb-2">
                 <span>📢</span>
-                <strong>ECN</strong>
+                <strong className="text-gray-900 dark:text-white">ECN</strong>
               </div>
-              <p className="text-sm text-gray-600">Engineering Change Notice - Communicates implemented changes</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Engineering Change Notice - Communicates implemented changes</p>
             </div>
           </div>
         </div>

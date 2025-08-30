@@ -114,8 +114,7 @@ export default function EntityCard({
 
   return (
     <div
-      className={`bg-white rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${className}`}
-      style={{ border: '1px solid #E5E7EB' }}
+      className={`bg-white dark:bg-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer border border-gray-200 dark:border-gray-700 ${className}`}
       onClick={onClick}
     >
       {/* Header with Number Badge and Priority */}
@@ -135,7 +134,7 @@ export default function EntityCard({
       </div>
 
       {/* Title */}
-      <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
+      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
         {title}
       </h3>
 
@@ -151,8 +150,8 @@ export default function EntityCard({
 
       {/* Linked Entity or ECR Count */}
       {linkedEntity && (
-        <div className="mb-3 p-2 bg-gray-50 rounded-md">
-          <div className="text-xs text-gray-600 mb-1">
+        <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+          <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
             {entityType === 'ECR' ? 'Linked ECO:' : 
              entityType === 'ECO' ? 'Source ECRs:' : 
              'Source ECO:'}
@@ -164,15 +163,15 @@ export default function EntityCard({
       )}
       
       {ecrCount && ecrCount > 0 && (
-        <div className="mb-3 p-2 bg-blue-50 rounded-md">
-          <div className="text-xs font-medium text-blue-800">
+        <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+          <div className="text-xs font-medium text-blue-800 dark:text-blue-300">
             📝 {ecrCount} ECR{ecrCount > 1 ? 's' : ''} bundled
           </div>
         </div>
       )}
 
       {/* Footer with Person and Date */}
-      <div className="flex items-start justify-between pt-3 border-t border-gray-100 flex-wrap gap-2">
+      <div className="flex items-start justify-between pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap gap-2">
         {/* Person (Requestor/Assignee) */}
         {person && (
           <div className="flex items-center space-x-2 min-w-0">
@@ -183,24 +182,24 @@ export default function EntityCard({
                 className="w-6 h-6 rounded-full flex-shrink-0"
               />
             ) : (
-              <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-medium text-gray-600">
+              <div className="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                   {getInitials(person.name)}
                 </span>
               </div>
             )}
-            <span className="text-xs text-gray-600 truncate">
+            <span className="text-xs text-gray-600 dark:text-gray-300 truncate">
               {person.name}
             </span>
           </div>
         )}
 
         {/* Date */}
-        <div className="text-xs text-gray-500 text-right flex-shrink-0">
+        <div className="text-xs text-gray-500 dark:text-gray-400 text-right flex-shrink-0">
           {dueDate ? (
             <div>
               <div>Due: {formatDate(dueDate)}</div>
-              <div className="text-gray-400">Created: {formatDate(createdDate)}</div>
+              <div className="text-gray-400 dark:text-gray-500">Created: {formatDate(createdDate)}</div>
             </div>
           ) : (
             <div>Created: {formatDate(createdDate)}</div>

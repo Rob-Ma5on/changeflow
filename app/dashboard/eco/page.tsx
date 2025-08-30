@@ -101,10 +101,10 @@ function KanbanColumn({ column, ecos, onCreateECN }: {
   onCreateECN?: (ecoId: string) => void;
 }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-4 flex-1 min-h-[600px]">
+    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex-1 min-h-[600px]">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-900">{column.title}</h3>
-        <span className="bg-gray-200 text-gray-600 px-2 py-1 text-xs rounded-full">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{column.title}</h3>
+        <span className="bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-1 text-xs rounded-full">
           {ecos.length}
         </span>
       </div>
@@ -311,8 +311,67 @@ export default function ECOPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded w-80 animate-pulse"></div>
+            <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-96 mt-2 animate-pulse"></div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-24 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded flex-1 min-w-64 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Content Skeleton - Kanban by default */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-24 animate-pulse"></div>
+                <div className="h-6 w-6 bg-gray-200 dark:bg-gray-600 rounded-full animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }, (_, j) => (
+                  <div key={j} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 animate-pulse">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded-full w-20"></div>
+                      <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded-full w-16"></div>
+                    </div>
+                    <div className="space-y-2 mb-3">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
+                    </div>
+                    <div className="mb-3">
+                      <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded-full w-24"></div>
+                    </div>
+                    <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -320,19 +379,19 @@ export default function ECOPage() {
   return (
     <div className="space-y-6">
       {/* Info Banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-5 w-5 text-amber-400 dark:text-amber-300" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-amber-800">
+            <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
               Ready to Create ECOs?
             </h3>
-            <div className="mt-1 text-sm text-amber-700">
-              <p>ECOs are created from approved ECRs to track implementation. <Link href="/dashboard/ecr?status=APPROVED" className="font-medium text-amber-800 underline hover:text-amber-900">View approved ECRs</Link> ready for conversion.</p>
+            <div className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+              <p>ECOs are created from approved ECRs to track implementation. <Link href="/dashboard/ecr?status=APPROVED" className="font-medium text-amber-800 dark:text-amber-200 underline hover:text-amber-900 dark:hover:text-amber-100">View approved ECRs</Link> ready for conversion.</p>
             </div>
           </div>
         </div>
@@ -341,8 +400,8 @@ export default function ECOPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Engineering Change Orders</h1>
-          <p className="text-gray-600 mt-2">ECOs are created from approved ECRs to track implementation progress</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Engineering Change Orders</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">ECOs are created from approved ECRs to track implementation progress</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="flex flex-col sm:flex-row gap-2">

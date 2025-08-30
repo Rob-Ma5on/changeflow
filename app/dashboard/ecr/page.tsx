@@ -350,10 +350,10 @@ export default function ECRPage() {
         {/* Content Skeleton - Kanban by default */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="bg-gray-50 rounded-lg p-4">
+            <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
-                <div className="h-5 bg-gray-200 rounded w-24 animate-pulse"></div>
-                <div className="h-6 w-6 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-24 animate-pulse"></div>
+                <div className="h-6 w-6 bg-gray-200 dark:bg-gray-600 rounded-full animate-pulse"></div>
               </div>
               <div className="space-y-3">
                 {Array.from({ length: 3 }, (_, j) => (
@@ -370,18 +370,18 @@ export default function ECRPage() {
   return (
     <div className="space-y-6">
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-5 w-5 text-blue-400 dark:text-blue-300" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
               Start Your Change Management Process
             </h3>
-            <div className="mt-1 text-sm text-blue-700">
+            <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
               <p>Begin the change management workflow by creating a new Engineering Change Request (ECR). Once approved, ECRs can be converted to Engineering Change Orders (ECOs) for implementation.</p>
             </div>
           </div>
@@ -460,10 +460,10 @@ export default function ECRPage() {
           {kanbanColumns.map((column) => {
             const columnECRs = sortedECRs.filter(ecr => column.status.includes(ecr.status));
             return (
-              <div key={column.id} className="bg-gray-50 rounded-lg p-4">
+              <div key={column.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                  <span className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{column.title}</h3>
+                  <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
                     {columnECRs.length}
                   </span>
                 </div>

@@ -20,7 +20,8 @@
       "Bash(PORT=3001 npm run dev)",
       "Bash(pkill:*)",
       "Bash(npm run build:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }

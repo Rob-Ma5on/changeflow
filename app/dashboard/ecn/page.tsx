@@ -184,8 +184,94 @@ export default function ECNPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        {/* Info Banner Skeleton */}
+        <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <div className="h-5 w-5 bg-gray-200 dark:bg-gray-600 rounded animate-pulse"></div>
+            </div>
+            <div className="ml-3 flex-1">
+              <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-48 animate-pulse mb-2"></div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded w-80 animate-pulse mb-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-96 animate-pulse"></div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Filter Bar Skeleton */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-72 animate-pulse"></div>
+            <div className="flex gap-2">
+              <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-32 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Kanban Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-24 animate-pulse"></div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded-full w-8 animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                {[1, 2].map((j) => (
+                  <div key={j} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-16 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-12 animate-pulse"></div>
+                    </div>
+                    <div className="space-y-2 mb-3">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/2 animate-pulse"></div>
+                    </div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded-full w-20 animate-pulse mb-3"></div>
+                    <div className="pt-3 border-t border-gray-100 dark:border-gray-600">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16 animate-pulse"></div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16 animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-12 animate-pulse"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Summary Skeleton */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-24 animate-pulse mb-4"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="text-center">
+                <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded w-12 mx-auto animate-pulse mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mx-auto animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -193,7 +279,7 @@ export default function ECNPage() {
   return (
     <div className="space-y-6">
       {/* Info Banner */}
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+      <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4 mb-6">
         <div className="flex items-start">
           <div className="flex-shrink-0">
             <svg className="h-5 w-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -201,11 +287,11 @@ export default function ECNPage() {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-purple-800">
+            <h3 className="text-sm font-medium text-purple-800 dark:text-purple-200">
               Generate ECNs from Completed ECOs
             </h3>
-            <div className="mt-1 text-sm text-purple-700">
-              <p>ECNs are generated from completed ECOs to formally notify stakeholders of implemented changes. <Link href="/dashboard/eco?status=COMPLETED" className="font-medium text-purple-800 underline hover:text-purple-900">View completed ECOs</Link> ready for ECN generation.</p>
+            <div className="mt-1 text-sm text-purple-700 dark:text-purple-300">
+              <p>ECNs are generated from completed ECOs to formally notify stakeholders of implemented changes. <Link href="/dashboard/eco?status=COMPLETED" className="font-medium text-purple-800 dark:text-purple-200 underline hover:text-purple-900 dark:hover:text-purple-100">View completed ECOs</Link> ready for ECN generation.</p>
             </div>
           </div>
         </div>
@@ -214,8 +300,8 @@ export default function ECNPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Engineering Change Notices</h1>
-          <p className="text-gray-600 mt-2">ECNs are generated from completed ECOs to formally notify of implemented changes</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Engineering Change Notices</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">ECNs are generated from completed ECOs to formally notify of implemented changes</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
@@ -242,10 +328,10 @@ export default function ECNPage() {
           {kanbanColumns.map((column) => {
             const columnEcns = sortedEcns.filter(ecn => column.status.includes(ecn.status));
             return (
-              <div key={column.id} className="bg-gray-50 rounded-lg p-4">
+              <div key={column.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                  <span className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{column.title}</h3>
+                  <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium px-2 py-1 rounded-full">
                     {columnEcns.length}
                   </span>
                 </div>
@@ -279,7 +365,7 @@ export default function ECNPage() {
                     />
                   ))}
                   {columnEcns.length === 0 && (
-                    <div className="text-center py-8 text-gray-500 text-sm">
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                       No ECNs in {column.title.toLowerCase()}
                     </div>
                   )}
@@ -290,11 +376,11 @@ export default function ECNPage() {
         </div>
       ) : (
         // List View
-        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           {sortedEcns.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <ColumnHeader
                       title="ECN Number"
@@ -343,24 +429,24 @@ export default function ECNPage() {
                     />
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {sortedEcns.map((ecn) => (
                     <tr 
                       key={ecn.id} 
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                       onClick={() => window.location.href = `/dashboard/ecn/${ecn.id}`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <span className="text-purple-600 hover:text-purple-800">
+                        <span className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300">
                           {ecn.ecnNumber}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                         <div className="max-w-xs truncate">
                           {ecn.title}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden md:table-cell">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           ecn.customerNotificationRequired === 'FORMAL' ? 'bg-red-100 text-red-800' :
                           ecn.customerNotificationRequired === 'INFORMATIONAL' ? 'bg-yellow-100 text-yellow-800' :
@@ -369,7 +455,7 @@ export default function ECNPage() {
                           {ecn.customerNotificationRequired?.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden lg:table-cell">
                         {ecn.responseDeadline ? (
                           <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                             {ecn.responseDeadline.replace('HOURS_', '').replace('DAYS_', '') + 
@@ -387,7 +473,7 @@ export default function ECNPage() {
                           {ecn.implementationStatus?.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white hidden lg:table-cell">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           ecn.acknowledgmentStatus === 'Acknowledged' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                         }`}>
@@ -405,15 +491,15 @@ export default function ECNPage() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               {ecns.length === 0 ? (
                 <div>
-                  <h3 className="text-lg font-medium">No ECNs found</h3>
-                  <p className="mt-2">Create ECNs from completed ECOs to track change notices.</p>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">No ECNs found</h3>
+                  <p className="mt-2 text-gray-500 dark:text-gray-400">Create ECNs from completed ECOs to track change notices.</p>
                 </div>
               ) : (
                 <div>
-                  <h3 className="text-lg font-medium">No ECNs match your filters</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">No ECNs match your filters</h3>
                   <button 
                     onClick={() => setFilters({
                       search: '',
@@ -423,7 +509,7 @@ export default function ECNPage() {
                       assignee: '',
                       dateRange: { start: '', end: '' }
                     })}
-                    className="mt-2 text-blue-600 hover:text-blue-800"
+                    className="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                   >
                     Clear filters
                   </button>
@@ -435,32 +521,32 @@ export default function ECNPage() {
       )}
 
       {/* Summary Stats */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Summary</h3>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Summary</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {filteredEcns.filter(ecn => ecn.status === 'PENDING_APPROVAL').length}
             </div>
-            <div className="text-sm text-gray-500">Pending Approval</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Pending Approval</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {filteredEcns.filter(ecn => ecn.status === 'APPROVED').length}
             </div>
-            <div className="text-sm text-gray-500">Approved</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Approved</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {filteredEcns.filter(ecn => ecn.status === 'DISTRIBUTED').length}
             </div>
-            <div className="text-sm text-gray-500">Distributed</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Distributed</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {filteredEcns.filter(ecn => ecn.status === 'EFFECTIVE').length}
             </div>
-            <div className="text-sm text-gray-500">Effective</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Effective</div>
           </div>
         </div>
       </div>

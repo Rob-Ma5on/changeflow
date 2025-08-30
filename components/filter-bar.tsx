@@ -87,13 +87,13 @@ export default function FilterBar({
   ]
 
   return (
-    <div className="bg-white rounded-lg p-4 mb-6" style={{ border: '1px solid #E5E7EB' }}>
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
       {/* Mobile Filter Toggle */}
       <div className="flex items-center justify-between mb-4 md:hidden">
         <div className="flex-1">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -102,10 +102,7 @@ export default function FilterBar({
               placeholder="Search..."
               value={filters.search}
               onChange={(e) => updateFilter('search', e.target.value)}
-              className="pl-10 pr-3 py-2 rounded-md focus:outline-none text-gray-900 w-full"
-              style={{ 
-                border: '1px solid #E5E7EB'
-              }}
+              className="pl-10 pr-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 w-full"
               onFocus={(e) => {
                 e.target.style.outline = '2px solid #0066CC';
                 e.target.style.outlineOffset = '2px';
@@ -120,8 +117,7 @@ export default function FilterBar({
         </div>
         <button
           onClick={() => setShowMobileFilters(!showMobileFilters)}
-          className="ml-4 p-2 rounded-md text-gray-400 hover:text-gray-600"
-          style={{ border: '1px solid #E5E7EB' }}
+          className="ml-4 p-2 rounded-md text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
@@ -135,7 +131,7 @@ export default function FilterBar({
         <div className="flex-1 min-w-64">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -144,10 +140,7 @@ export default function FilterBar({
               placeholder="Search..."
               value={filters.search}
               onChange={(e) => updateFilter('search', e.target.value)}
-              className="pl-10 pr-3 py-2 rounded-md focus:outline-none text-gray-900 w-full"
-              style={{ 
-                border: '1px solid #E5E7EB'
-              }}
+              className="pl-10 pr-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 w-full"
               onFocus={(e) => {
                 e.target.style.outline = '2px solid #0066CC';
                 e.target.style.outlineOffset = '2px';
@@ -165,8 +158,7 @@ export default function FilterBar({
         <select
           value={filters.status}
           onChange={(e) => updateFilter('status', e.target.value)}
-          className="px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-          style={{ border: '1px solid #E5E7EB' }}
+          className="px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
           onFocus={(e) => {
             e.target.style.outline = '2px solid #0066CC';
             e.target.style.outlineOffset = '2px';
@@ -189,8 +181,7 @@ export default function FilterBar({
         <select
           value={filters.priority}
           onChange={(e) => updateFilter('priority', e.target.value)}
-          className="px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-          style={{ border: '1px solid #E5E7EB' }}
+          className="px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
           onFocus={(e) => {
             e.target.style.outline = '2px solid #0066CC';
             e.target.style.outlineOffset = '2px';
