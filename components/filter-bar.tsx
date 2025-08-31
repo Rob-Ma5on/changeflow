@@ -204,8 +204,7 @@ export default function FilterBar({
           <select
             value={filters.category}
             onChange={(e) => updateFilter('category', e.target.value)}
-            className="px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-            style={{ border: '1px solid #E5E7EB' }}
+            className="px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
             onFocus={(e) => {
               e.target.style.outline = '2px solid #0066CC';
               e.target.style.outlineOffset = '2px';
@@ -230,8 +229,7 @@ export default function FilterBar({
           <select
             value={filters.assignee}
             onChange={(e) => updateFilter('assignee', e.target.value)}
-            className="px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-            style={{ border: '1px solid #E5E7EB' }}
+            className="px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
             onFocus={(e) => {
               e.target.style.outline = '2px solid #0066CC';
               e.target.style.outlineOffset = '2px';
@@ -255,8 +253,7 @@ export default function FilterBar({
         <div className="relative" ref={datePickerRef}>
           <button
             onClick={() => setShowDatePicker(!showDatePicker)}
-            className="px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white flex items-center space-x-2"
-            style={{ border: '1px solid #E5E7EB' }}
+            className="px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center space-x-2"
             onFocus={(e) => {
               e.currentTarget.style.outline = '2px solid #0066CC';
               e.currentTarget.style.outlineOffset = '2px';
@@ -274,16 +271,15 @@ export default function FilterBar({
           </button>
 
           {showDatePicker && (
-            <div className="absolute top-full left-0 mt-1 bg-white rounded-md shadow-lg z-10 p-4 min-w-64" style={{ border: '1px solid #E5E7EB' }}>
+            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 p-4 min-w-64 border border-gray-200 dark:border-gray-600">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
                   <input
                     type="date"
                     value={filters.dateRange.start}
                     onChange={(e) => updateFilter('dateRange', { ...filters.dateRange, start: e.target.value })}
-                    className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900"
-                    style={{ border: '1px solid #E5E7EB' }}
+                    className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                     onFocus={(e) => {
                       e.target.style.outline = '2px solid #0066CC';
                       e.target.style.outlineOffset = '2px';
@@ -296,13 +292,12 @@ export default function FilterBar({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
                   <input
                     type="date"
                     value={filters.dateRange.end}
                     onChange={(e) => updateFilter('dateRange', { ...filters.dateRange, end: e.target.value })}
-                    className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900"
-                    style={{ border: '1px solid #E5E7EB' }}
+                    className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                     onFocus={(e) => {
                       e.target.style.outline = '2px solid #0066CC';
                       e.target.style.outlineOffset = '2px';
@@ -324,7 +319,7 @@ export default function FilterBar({
           <button
             onClick={onExport}
             disabled={exportDisabled || isExporting}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Export to Excel"
           >
             {isExporting ? (
@@ -351,7 +346,7 @@ export default function FilterBar({
         {hasActiveFilters() && (
           <button
             onClick={clearFilters}
-            className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-md transition-colors"
+            className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
           >
             Clear Filters
           </button>
@@ -360,16 +355,15 @@ export default function FilterBar({
 
       {/* Mobile Filters */}
       {showMobileFilters && (
-        <div className="md:hidden space-y-4 pt-4 border-t" style={{ borderColor: '#E5E7EB' }}>
+        <div className="md:hidden space-y-4 pt-4 border-t border-gray-200 dark:border-gray-600">
           <div className="grid grid-cols-1 gap-4">
             {/* Status Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
               <select
                 value={filters.status}
                 onChange={(e) => updateFilter('status', e.target.value)}
-                className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-                style={{ border: '1px solid #E5E7EB' }}
+                className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                 onFocus={(e) => {
                   e.target.style.outline = '2px solid #0066CC';
                   e.target.style.outlineOffset = '2px';
@@ -391,12 +385,11 @@ export default function FilterBar({
 
             {/* Priority Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priority</label>
               <select
                 value={filters.priority}
                 onChange={(e) => updateFilter('priority', e.target.value)}
-                className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-                style={{ border: '1px solid #E5E7EB' }}
+                className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                 onFocus={(e) => {
                   e.target.style.outline = '2px solid #0066CC';
                   e.target.style.outlineOffset = '2px';
@@ -418,12 +411,11 @@ export default function FilterBar({
             {/* Category Dropdown */}
             {categoryOptions.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                 <select
                   value={filters.category}
                   onChange={(e) => updateFilter('category', e.target.value)}
-                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-                  style={{ border: '1px solid #E5E7EB' }}
+                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                   onFocus={(e) => {
                     e.target.style.outline = '2px solid #0066CC';
                     e.target.style.outlineOffset = '2px';
@@ -447,12 +439,11 @@ export default function FilterBar({
             {/* Assignee Dropdown */}
             {showAssignee && assigneeOptions.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assignee</label>
                 <select
                   value={filters.assignee}
                   onChange={(e) => updateFilter('assignee', e.target.value)}
-                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 bg-white"
-                  style={{ border: '1px solid #E5E7EB' }}
+                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                   onFocus={(e) => {
                     e.target.style.outline = '2px solid #0066CC';
                     e.target.style.outlineOffset = '2px';

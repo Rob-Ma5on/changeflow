@@ -17,6 +17,7 @@ model Organization {
   ecos      ECO[]
   ecrs      ECR[]
   users     User[]
+  revisions Revision[]
 
   @@map("organizations")
 }
@@ -38,6 +39,10 @@ model User {
   ecrApprovals   ECR[]        @relation("ECRApprover")
   ecrAssignments ECR[]        @relation("ECRAssignee")
   ecrSubmissions ECR[]        @relation("ECRSubmitter")
+  revisionsCreated Revision[] @relation("RevisionChangedBy")
+  ecrRevisions   ECRRevision[]
+  ecoRevisions   ECORevision[]
+  ecnRevisions   ECNRevision[]
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("users")
@@ -76,6 +81,7 @@ model ECR {
   eco                       ECO?                    @relation(fields: [ecoId], references: [id])
   organization              Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submitter                 User                    @relation("ECRSubmitter", fields: [submitterId], references: [id])
+  revisions                 ECRRevision[]
 
   @@unique([ecrNumber, organizationId])
   @@map("ecrs")
@@ -116,6 +122,7 @@ model ECO {
   assignee              User?                   @relation("ECOAssignee", fields: [assigneeId], references: [id])
   organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submitter             User                    @relation("ECOSubmitter", fields: [submitterId], references: [id])
+  revisions             ECORevision[]
 
   @@unique([ecoNumber, organizationId])
   @@map("ecos")
@@ -154,9 +161,73 @@ model ECN {
   eco                           ECO?                            @relation(fields: [ecoId], references: [id])
   organization                  Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submitter                     User                            @relation("ECNSubmitter", fields: [submitterId], references: [id])
+  revisions                     ECNRevision[]
 
   @@unique([ecnNumber, organizationId])
   @@map("ecns")
+}
+
+model Revision {
+  id           String    @id @default(cuid())
+  entityType   String    // 'ECR', 'ECO', 'ECN'
+  entityId     String    // ID of the entity being revised
+  previousValues Json?   // Previous field values
+  newValues    Json      // New field values
+  changedFields String[] // Array of field names that changed
+  changedBy    String    // User ID who made the change
+  changedAt    DateTime  @default(now())
+  revisionNote String?   // Optional note about the revision
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  changedByUser User       @relation("RevisionChangedBy", fields: [changedBy], references: [id])
+
+  @@map("revisions")
+}
+
+model ECRRevision {
+  id            String   @id @default(cuid())
+  ecrId         String
+  ecr           ECR      @relation(fields: [ecrId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  changedAt     DateTime @default(now())
+  revisionNote  String?
+  previousData  Json     // Store previous field values
+  newData       Json     // Store new field values
+  changedFields String[] // Array of field names that changed
+  
+  @@map("ecr_revisions")
+}
+
+model ECORevision {
+  id            String   @id @default(cuid())
+  ecoId         String
+  eco           ECO      @relation(fields: [ecoId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  changedAt     DateTime @default(now())
+  revisionNote  String?
+  previousData  Json
+  newData       Json
+  changedFields String[]
+  
+  @@map("eco_revisions")
+}
+
+model ECNRevision {
+  id            String   @id @default(cuid())
+  ecnId         String
+  ecn           ECN      @relation(fields: [ecnId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  changedAt     DateTime @default(now())
+  revisionNote  String?
+  previousData  Json
+  newData       Json
+  changedFields String[]
+  
+  @@map("ecn_revisions")
 }
 
 enum ECRPriority {
