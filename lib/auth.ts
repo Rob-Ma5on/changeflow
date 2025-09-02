@@ -23,8 +23,19 @@ export const authOptions: NextAuthOptions = {
             where: {
               email: credentials.email
             },
-            include: {
-              organization: true
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              password: true,
+              role: true,
+              organizationId: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              }
             }
           });
 

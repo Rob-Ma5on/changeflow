@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { UserRole } from '@prisma/client';
 import Link from 'next/link';
 import { Pie, Doughnut, Bar } from 'react-chartjs-2';
 import {
@@ -13,6 +14,8 @@ import {
   LinearScale,
   BarElement,
 } from 'chart.js';
+import { ActionRequiredList } from '@/components/dashboard/ActionRequiredCard';
+import RoleMetrics from '@/components/dashboard/RoleMetrics';
 
 // Register Chart.js components
 ChartJS.register(
@@ -75,6 +78,9 @@ interface DashboardStats {
   highPriorityItems: number;
   customerImpactItems: number;
   dueThisWeek: number;
+  actionItems: any[];
+  roleMetrics: Record<string, any>;
+  userRole: UserRole;
 }
 
 export default function DashboardPage() {
@@ -93,7 +99,10 @@ export default function DashboardPage() {
     myItems: { assigned: 0, submitted: 0, needsApproval: 0 },
     highPriorityItems: 0,
     customerImpactItems: 0,
-    dueThisWeek: 0
+    dueThisWeek: 0,
+    actionItems: [],
+    roleMetrics: {},
+    userRole: 'VIEWER' as UserRole
   });
   const [loading, setLoading] = useState(true);
 
@@ -121,7 +130,10 @@ export default function DashboardPage() {
             myItems: { assigned: 0, submitted: 0, needsApproval: 0 },
             highPriorityItems: 0,
             customerImpactItems: 0,
-            dueThisWeek: 0
+            dueThisWeek: 0,
+            actionItems: [],
+            roleMetrics: {},
+            userRole: 'VIEWER' as UserRole
           });
         }
       } catch (error) {
@@ -373,6 +385,165 @@ export default function DashboardPage() {
     );
   }
 
+  const getRoleSpecificQuickActions = () => {
+    const role = stats.userRole;
+    const actions = [];
+
+    switch (role) {
+      case 'REQUESTOR':
+        actions.push(
+          {
+            href: '/dashboard/ecr/new',
+            icon: (
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            ),
+            title: 'New ECR',
+            description: 'Create change request',
+            bgColor: 'bg-blue-100',
+            primary: true
+          }
+        );
+        break;
+      case 'ENGINEER':
+        actions.push(
+          {
+            href: '/dashboard/ecr?status=SUBMITTED,UNDER_REVIEW',
+            icon: (
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            ),
+            title: 'Review ECRs',
+            description: 'Pending reviews',
+            bgColor: 'bg-green-100'
+          }
+        );
+        break;
+      case 'QUALITY':
+        actions.push(
+          {
+            href: '/dashboard/eco?status=VERIFICATION',
+            icon: (
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            ),
+            title: 'Verify ECOs',
+            description: 'Quality verification',
+            bgColor: 'bg-purple-100'
+          }
+        );
+        break;
+      case 'MANUFACTURING':
+        actions.push(
+          {
+            href: '/dashboard/eco?status=READY_FOR_IMPLEMENTATION',
+            icon: (
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+            ),
+            title: 'Implement ECOs',
+            description: 'Ready to execute',
+            bgColor: 'bg-orange-100'
+          }
+        );
+        break;
+      case 'MANAGER':
+        actions.push(
+          {
+            href: '/dashboard/ecr?status=PENDING_APPROVAL',
+            icon: (
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+            title: 'Approve ECRs',
+            description: 'Pending approval',
+            bgColor: 'bg-red-100',
+            primary: true
+          }
+        );
+        break;
+      case 'DOCUMENT_CONTROL':
+        actions.push(
+          {
+            href: '/ecn/create-from-eco',
+            icon: (
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+              </svg>
+            ),
+            title: 'Create ECN',
+            description: 'From verified ECO',
+            bgColor: 'bg-amber-100',
+            primary: true
+          }
+        );
+        break;
+      default:
+        actions.push(
+          {
+            href: '/dashboard/ecr',
+            icon: (
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            ),
+            title: 'View ECRs',
+            description: 'Browse requests',
+            bgColor: 'bg-gray-100'
+          }
+        );
+    }
+
+    // Add common actions
+    actions.push(
+      {
+        href: '/dashboard/eco',
+        icon: (
+          <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        ),
+        title: 'View ECOs',
+        description: 'Track implementation',
+        bgColor: 'bg-green-100'
+      },
+      {
+        href: '/dashboard/ecn',
+        icon: (
+          <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 2v5H4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H4a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V8" />
+          </svg>
+        ),
+        title: 'Review ECNs',
+        description: 'View notifications',
+        bgColor: 'bg-amber-100'
+      }
+    );
+
+    return actions;
+  };
+
+  const getRoleDisplayName = (role: UserRole) => {
+    const roleNames = {
+      REQUESTOR: 'Requestor',
+      ENGINEER: 'Engineer',
+      QUALITY: 'Quality Assurance',
+      MANUFACTURING: 'Manufacturing',
+      MANAGER: 'Manager',
+      DOCUMENT_CONTROL: 'Document Control',
+      ADMIN: 'Administrator',
+      VIEWER: 'Viewer'
+    };
+    return roleNames[role] || role;
+  };
+
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
@@ -381,9 +552,26 @@ export default function DashboardPage() {
           Welcome back, {session?.user?.name || 'User'}!
         </h1>
         <p className="text-gray-600 dark:text-gray-300 mt-2">
-          Here&rsquo;s what&rsquo;s happening with your engineering changes
+          Here&rsquo;s your {getRoleDisplayName(stats.userRole)} dashboard
         </p>
       </div>
+
+      {/* Role-Specific Action Items */}
+      {stats.actionItems.length > 0 && (
+        <ActionRequiredList
+          items={stats.actionItems}
+          title="Action Required"
+          maxItems={5}
+          showViewAll={true}
+          viewAllUrl={`/dashboard/${stats.userRole.toLowerCase()}/tasks`}
+        />
+      )}
+
+      {/* Role-Specific Metrics */}
+      <RoleMetrics
+        role={stats.userRole}
+        metrics={stats.roleMetrics}
+      />
 
       {/* Quick Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -607,56 +795,27 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Role-Specific Quick Actions */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link
-            href="/dashboard/ecr/new"
-            className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">New ECR</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Create change request</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/dashboard/eco"
-            className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">View ECOs</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Track implementation</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/dashboard/ecn"
-            className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-4">
-              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 2v5H4" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H4a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V8" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">Review ECNs</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Approve notifications</p>
-            </div>
-          </Link>
+          {getRoleSpecificQuickActions().slice(0, 3).map((action, index) => (
+            <Link
+              key={index}
+              href={action.href}
+              className={`flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ${
+                action.primary ? 'ring-2 ring-blue-500 border-blue-500' : ''
+              }`}
+            >
+              <div className={`w-10 h-10 ${action.bgColor} rounded-lg flex items-center justify-center mr-4`}>
+                {action.icon}
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">{action.title}</p>
+                <p className="text-sm text-gray-500">{action.description}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
 

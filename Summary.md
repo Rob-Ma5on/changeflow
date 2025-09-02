@@ -31,7 +31,7 @@ ChangeFlow is a complete engineering change management system built with Next.js
 - **Framework**: Next.js 15 with App Router
 - **Database**: PostgreSQL with Prisma ORM and Phase 1 schema enhancements
 - **Authentication**: NextAuth.js with credentials provider
-- **Styling**: Tailwind CSS with custom color scheme
+- **Styling**: Tailwind CSS with custom color scheme and comprehensive dark mode support
 - **Charts**: Chart.js and react-chartjs-2 for analytics
 - **Export**: CSV generation for Phase 1 data
 - **Deployment**: Vercel-ready configuration
@@ -48,10 +48,11 @@ ChangeFlow is a complete engineering change management system built with Next.js
 
 ### Components
 - **ViewToggle**: Kanban/List view switching
-- **FilterBar**: Universal filtering with mobile collapse and Phase 1 filters
+- **FilterBar**: Universal filtering with mobile collapse and Phase 1 filters, full dark mode support
 - **EntityCard**: Consistent card layout with Phase 1 field display
 - **ColumnHeader**: Sortable table headers with visual indicators
 - **Analytics Charts**: Priority breakdowns, customer impact, and implementation status
+- **RevisionHistory**: Expandable revision tracking with field-level change visualization and dark mode styling
 
 ## 📱 Mobile Features
 
@@ -60,7 +61,21 @@ ChangeFlow is a complete engineering change management system built with Next.js
 - **Touch-Friendly**: Optimized buttons and touch targets
 - **Scrollable Tables**: Horizontal scroll for table overflow
 
-## 🚀 Recent Updates (Latest: UI/UX Workflow Enhancement)
+## 🚀 Recent Updates (Latest: Authentication System Fixes & Database Schema Alignment)
+
+### Authentication System Fixes & Database Schema Alignment
+- **8-Role User System**: Implemented comprehensive role-based access control with ADMIN, MANAGER, ENGINEER, QUALITY, MANUFACTURING, REQUESTOR, DOCUMENT_CONTROL, VIEWER roles
+- **Database Schema Cleanup**: Removed non-existent fields (department, technicalAssessment, etc.) and aligned API routes with actual schema
+- **Login Page Enhancement**: Added all 8 test account credentials with clickable auto-fill functionality for easy demo access
+- **API Route Fixes**: Fixed ECR creation functionality by removing references to non-existent database fields
+- **Authentication Flow**: Resolved field mismatch errors between API queries and database schema structure
+
+### Revision History & Dark Mode Implementation
+- **Comprehensive Revision Tracking**: Added dedicated revision models for ECR, ECO, and ECN with field-level change detection
+- **RevisionHistory Component**: Interactive expandable UI showing before/after values with user attribution and timestamps
+- **Accurate Change Detection**: Only tracks actual field changes, preventing false revision entries
+- **Dark Mode Support**: Complete dark mode implementation across all detail pages, filters, and components
+- **Mobile-First Design**: Responsive revision history with proper mobile styling and dark mode support
 
 ### UI/UX Workflow Enhancement
 - **Modal Removal**: Eliminated modal popups from ECO and ECN kanban views for better user experience
@@ -125,4 +140,4 @@ npm run build
 
 ---
 
-*Last updated: 2025-08-30 - UI/UX Workflow Enhancement with Modal Removal and Direct Navigation*
+*Last updated: 2025-09-02 - Authentication System Fixes and Database Schema Alignment*

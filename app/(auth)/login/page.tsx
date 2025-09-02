@@ -42,6 +42,12 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemoLogin = (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword('password123');
+    setError('');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -132,11 +138,94 @@ export default function LoginPage() {
             </p>
             
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <p className="text-sm font-medium text-blue-900 mb-2">Demo Account:</p>
-              <p className="text-xs text-blue-700">
-                <strong>Email:</strong> admin@acme-mfg.com<br />
-                <strong>Password:</strong> password123
-              </p>
+              <p className="text-sm font-medium text-blue-900 mb-3">Test Accounts (Password: password123):</p>
+              <div className="grid grid-cols-1 gap-1.5 text-xs text-blue-700">
+                <div className="flex justify-between items-center">
+                  <span><strong>Admin:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('admin@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    admin@test.com
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span><strong>Manager:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('manager@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    manager@test.com
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span><strong>Engineer:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('engineer@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    engineer@test.com
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span><strong>Quality:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('quality@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    quality@test.com
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span><strong>Manufacturing:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('manufacturing@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    manufacturing@test.com
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span><strong>Requestor:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('requestor@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    requestor@test.com
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span><strong>Document Control:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('document@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    document@test.com
+                  </button>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span><strong>Viewer:</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('viewer@test.com')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                  >
+                    viewer@test.com
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-blue-200">
+                <p className="text-xs text-blue-600 italic">
+                  Click any email to auto-fill the form
+                </p>
+              </div>
             </div>
           </div>
         </form>

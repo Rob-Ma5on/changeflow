@@ -17,7 +17,6 @@ model Organization {
   ecos      ECO[]
   ecrs      ECR[]
   users     User[]
-  revisions Revision[]
 
   @@map("organizations")
 }
@@ -27,7 +26,7 @@ model User {
   email          String       @unique
   name           String
   password       String?
-  role           UserRole     @default(USER)
+  role           UserRole     @default(REQUESTOR)
   organizationId String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -39,195 +38,126 @@ model User {
   ecrApprovals   ECR[]        @relation("ECRApprover")
   ecrAssignments ECR[]        @relation("ECRAssignee")
   ecrSubmissions ECR[]        @relation("ECRSubmitter")
-  revisionsCreated Revision[] @relation("RevisionChangedBy")
-  ecrRevisions   ECRRevision[]
-  ecoRevisions   ECORevision[]
-  ecnRevisions   ECNRevision[]
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("users")
 }
 
 model ECR {
-  id                 String       @id @default(cuid())
-  ecrNumber          String
-  title              String
-  description        String
-  reason             String
-  status             ECRStatus    @default(DRAFT)
-  organizationId     String
-  submitterId        String
-  assigneeId         String?
-  approverId         String?
-  ecoId              String?      // Link to the ECO this ECR is bundled into
-  submittedAt        DateTime?
-  approvedAt         DateTime?
-  rejectedAt         DateTime?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  affectedProducts   String?
-  affectedDocuments  String?
-  costImpact         Decimal?
-  scheduleImpact            String?
-  implementationPlan        String?
-  priority                  ECRPriority
-  reasonForChange           String?
-  customerImpact            CustomerImpact
-  estimatedCostRange        EstimatedCostRange?
-  targetImplementationDate  DateTime?
-  stakeholders              String?
-  approver                  User?                   @relation("ECRApprover", fields: [approverId], references: [id])
-  assignee                  User?                   @relation("ECRAssignee", fields: [assigneeId], references: [id])
-  eco                       ECO?                    @relation(fields: [ecoId], references: [id])
-  organization              Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submitter                 User                    @relation("ECRSubmitter", fields: [submitterId], references: [id])
-  revisions                 ECRRevision[]
+  id                       String              @id @default(cuid())
+  ecrNumber                String
+  title                    String
+  description              String
+  reason                   String
+  urgency                  Urgency             @default(MEDIUM)
+  status                   ECRStatus           @default(DRAFT)
+  organizationId           String
+  submitterId              String
+  assigneeId               String?
+  approverId               String?
+  submittedAt              DateTime?
+  approvedAt               DateTime?
+  rejectedAt               DateTime?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  affectedProducts         String?
+  affectedDocuments        String?
+  costImpact               Decimal?
+  scheduleImpact           String?
+  implementationPlan       String?
+  ecoId                    String?
+  customerImpact           CustomerImpact      @default(NO_IMPACT)
+  estimatedCostRange       EstimatedCostRange?
+  priority                 ECRPriority         @default(MEDIUM)
+  reasonForChange          String?
+  stakeholders             String?
+  targetImplementationDate DateTime?
+  approver                 User?               @relation("ECRApprover", fields: [approverId], references: [id])
+  assignee                 User?               @relation("ECRAssignee", fields: [assigneeId], references: [id])
+  eco                      ECO?                @relation(fields: [ecoId], references: [id])
+  organization             Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter                User                @relation("ECRSubmitter", fields: [submitterId], references: [id])
 
   @@unique([ecrNumber, organizationId])
   @@map("ecrs")
 }
 
 model ECO {
-  id                 String       @id @default(cuid())
-  ecoNumber          String
-  title              String
-  description        String
-  organizationId     String
-  submitterId        String
-  assigneeId         String?
-  approverId         String?
-  status             ECOStatus    @default(BACKLOG)
-  priority           Priority     @default(MEDIUM)
-  submittedAt        DateTime?
-  approvedAt         DateTime?
-  completedAt        DateTime?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  implementationPlan String?
-  testingPlan        String?
-  rollbackPlan       String?
-  resourcesRequired     String?
-  estimatedEffort       String?
-  targetDate            DateTime?
-  effectiveDate         DateTime?
-  effectivityType       EffectivityType?
-  materialDisposition   MaterialDisposition?
-  documentUpdates       String?
-  implementationTeam    String?
-  inventoryImpact       Boolean?
-  estimatedTotalCost    Decimal?
-  ecns                  ECN[]
-  ecrs                  ECR[]                   // Multiple ECRs can be bundled into one ECO
-  approver              User?                   @relation("ECOApprover", fields: [approverId], references: [id])
-  assignee              User?                   @relation("ECOAssignee", fields: [assigneeId], references: [id])
-  organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submitter             User                    @relation("ECOSubmitter", fields: [submitterId], references: [id])
-  revisions             ECORevision[]
+  id                  String              @id @default(cuid())
+  ecoNumber           String
+  title               String
+  description         String
+  organizationId      String
+  submitterId         String
+  assigneeId          String?
+  approverId          String?
+  status              ECOStatus           @default(BACKLOG)
+  priority            Priority            @default(MEDIUM)
+  submittedAt         DateTime?
+  approvedAt          DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  implementationPlan  String?
+  testingPlan         String?
+  rollbackPlan        String?
+  resourcesRequired   String?
+  estimatedEffort     String?
+  targetDate          DateTime?
+  documentUpdates     String?
+  effectiveDate       DateTime?
+  effectivityType     EffectivityType     @default(DATE_BASED)
+  estimatedTotalCost  Decimal?
+  implementationTeam  String?
+  inventoryImpact     Boolean             @default(false)
+  materialDisposition MaterialDisposition @default(NO_IMPACT)
+  ecns                ECN[]
+  approver            User?               @relation("ECOApprover", fields: [approverId], references: [id])
+  assignee            User?               @relation("ECOAssignee", fields: [assigneeId], references: [id])
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter           User                @relation("ECOSubmitter", fields: [submitterId], references: [id])
+  ecrs                ECR[]
 
   @@unique([ecoNumber, organizationId])
   @@map("ecos")
 }
 
 model ECN {
-  id                      String       @id @default(cuid())
-  ecnNumber               String
-  title                   String
-  description             String
-  ecoId                   String?
-  organizationId          String
-  submitterId             String
-  assigneeId              String?
-  status                  ECNStatus    @default(DRAFT)
-  effectiveDate           DateTime?
-  distributedAt           DateTime?
-  createdAt               DateTime     @default(now())
-  updatedAt               DateTime     @updatedAt
-  changesImplemented      String?
-  affectedItems                 String?
-  dispositionInstructions       String?
-  verificationMethod            String?
-  distributionList              String?
-  internalStakeholders          String?
-  customerNotificationRequired  CustomerNotificationRequired?
-  notificationMethod            String                          @default("EMAIL")
-  responseDeadline              ResponseDeadline?
-  implementationStatus          ImplementationStatus?
-  actualImplementationDate      DateTime?
-  finalDocumentationSummary     String?
-  closureApprover               String?
-  closureDate                   DateTime?
-  acknowledgmentStatus          String?
-  assignee                      User?                           @relation("ECNAssignee", fields: [assigneeId], references: [id])
-  eco                           ECO?                            @relation(fields: [ecoId], references: [id])
-  organization                  Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submitter                     User                            @relation("ECNSubmitter", fields: [submitterId], references: [id])
-  revisions                     ECNRevision[]
+  id                           String                       @id @default(cuid())
+  ecnNumber                    String
+  title                        String
+  description                  String
+  ecoId                        String?
+  organizationId               String
+  submitterId                  String
+  assigneeId                   String?
+  status                       ECNStatus                    @default(DRAFT)
+  effectiveDate                DateTime?
+  distributedAt                DateTime?
+  createdAt                    DateTime                     @default(now())
+  updatedAt                    DateTime                     @updatedAt
+  changesImplemented           String?
+  affectedItems                String?
+  dispositionInstructions      String?
+  verificationMethod           String?
+  acknowledgmentStatus         String?
+  actualImplementationDate     DateTime?
+  closureApprover              String?
+  closureDate                  DateTime?
+  customerNotificationRequired CustomerNotificationRequired @default(NOT_REQUIRED)
+  distributionList             String?
+  finalDocumentationSummary    String?
+  implementationStatus         ImplementationStatus         @default(NOT_STARTED)
+  internalStakeholders         String?
+  notificationMethod           String                       @default("EMAIL")
+  responseDeadline             ResponseDeadline?
+  assignee                     User?                        @relation("ECNAssignee", fields: [assigneeId], references: [id])
+  eco                          ECO?                         @relation(fields: [ecoId], references: [id])
+  organization                 Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submitter                    User                         @relation("ECNSubmitter", fields: [submitterId], references: [id])
 
   @@unique([ecnNumber, organizationId])
   @@map("ecns")
-}
-
-model Revision {
-  id           String    @id @default(cuid())
-  entityType   String    // 'ECR', 'ECO', 'ECN'
-  entityId     String    // ID of the entity being revised
-  previousValues Json?   // Previous field values
-  newValues    Json      // New field values
-  changedFields String[] // Array of field names that changed
-  changedBy    String    // User ID who made the change
-  changedAt    DateTime  @default(now())
-  revisionNote String?   // Optional note about the revision
-  organizationId String
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  changedByUser User       @relation("RevisionChangedBy", fields: [changedBy], references: [id])
-
-  @@map("revisions")
-}
-
-model ECRRevision {
-  id            String   @id @default(cuid())
-  ecrId         String
-  ecr           ECR      @relation(fields: [ecrId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  changedAt     DateTime @default(now())
-  revisionNote  String?
-  previousData  Json     // Store previous field values
-  newData       Json     // Store new field values
-  changedFields String[] // Array of field names that changed
-  
-  @@map("ecr_revisions")
-}
-
-model ECORevision {
-  id            String   @id @default(cuid())
-  ecoId         String
-  eco           ECO      @relation(fields: [ecoId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  changedAt     DateTime @default(now())
-  revisionNote  String?
-  previousData  Json
-  newData       Json
-  changedFields String[]
-  
-  @@map("eco_revisions")
-}
-
-model ECNRevision {
-  id            String   @id @default(cuid())
-  ecnId         String
-  ecn           ECN      @relation(fields: [ecnId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  changedAt     DateTime @default(now())
-  revisionNote  String?
-  previousData  Json
-  newData       Json
-  changedFields String[]
-  
-  @@map("ecn_revisions")
 }
 
 enum ECRPriority {
@@ -290,7 +220,11 @@ enum UserRole {
   ADMIN
   MANAGER
   ENGINEER
-  USER
+  QUALITY
+  MANUFACTURING
+  REQUESTOR
+  DOCUMENT_CONTROL
+  VIEWER
 }
 
 enum Priority {
@@ -329,4 +263,11 @@ enum ECNStatus {
   DISTRIBUTED
   EFFECTIVE
   CANCELLED
+}
+
+enum Urgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
