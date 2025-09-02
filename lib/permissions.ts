@@ -230,7 +230,19 @@ export function hasPermission(
     fieldName?: string;
   }
 ): boolean {
+  // Validate inputs
+  if (!userRole) {
+    console.error('hasPermission: userRole is required');
+    return false;
+  }
+  
   const rolePermissions = ROLE_PERMISSIONS[userRole];
+  
+  // Check if role permissions exist
+  if (!rolePermissions) {
+    console.error(`hasPermission: No permissions found for role: ${userRole}`);
+    return false;
+  }
   
   // Find matching permission
   const permission = rolePermissions.find(p => 
@@ -284,6 +296,12 @@ export function getAllowedActions(
     entityDepartment?: string;
   }
 ): Action[] {
+  // Validate inputs
+  if (!userRole) {
+    console.error('getAllowedActions: userRole is required');
+    return [];
+  }
+  
   const allowedActions: Action[] = [];
   
   for (const action of Object.values(ACTIONS)) {
@@ -307,7 +325,19 @@ export function filterAllowedFields(
     entityDepartment?: string;
   }
 ): Record<string, any> {
+  // Validate inputs
+  if (!userRole) {
+    console.error('filterAllowedFields: userRole is required');
+    return {};
+  }
+  
   const rolePermissions = ROLE_PERMISSIONS[userRole];
+  
+  // Check if role permissions exist
+  if (!rolePermissions) {
+    console.error(`filterAllowedFields: No permissions found for role: ${userRole}`);
+    return {};
+  }
   
   // Get update permission for this entity
   const updatePermission = rolePermissions.find(p => 
