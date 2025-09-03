@@ -466,14 +466,13 @@ export default function FilterBar({
 
             {/* Date Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date Range</label>
               <div className="space-y-2">
                 <input
                   type="date"
                   value={filters.dateRange.start}
                   onChange={(e) => updateFilter('dateRange', { ...filters.dateRange, start: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900"
-                  style={{ border: '1px solid #E5E7EB' }}
+                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                   onFocus={(e) => {
                     e.target.style.outline = '2px solid #0066CC';
                     e.target.style.outlineOffset = '2px';
@@ -489,8 +488,7 @@ export default function FilterBar({
                   type="date"
                   value={filters.dateRange.end}
                   onChange={(e) => updateFilter('dateRange', { ...filters.dateRange, end: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900"
-                  style={{ border: '1px solid #E5E7EB' }}
+                  className="w-full px-3 py-2 rounded-md focus:outline-none text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
                   onFocus={(e) => {
                     e.target.style.outline = '2px solid #0066CC';
                     e.target.style.outlineOffset = '2px';
@@ -510,7 +508,7 @@ export default function FilterBar({
               <button
                 onClick={onExport}
                 disabled={exportDisabled || isExporting}
-                className="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export to Excel"
               >
                 {isExporting ? (
@@ -535,8 +533,7 @@ export default function FilterBar({
             {hasActiveFilters() && (
               <button
                 onClick={clearFilters}
-                className="w-full px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 rounded-md transition-colors"
-                style={{ border: '1px solid #E5E7EB' }}
+                className="w-full px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 rounded-md transition-colors border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Clear Filters
               </button>

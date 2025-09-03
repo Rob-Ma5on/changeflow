@@ -35,9 +35,9 @@ export const GET = withAuth(
           organizationId: user.organizationId,
         },
         include: {
-          submitter: { select: { id: true, name: true, email: true, role: true, department: true } },
-          assignee: { select: { id: true, name: true, email: true, role: true, department: true } },
-          approver: { select: { id: true, name: true, email: true, role: true, department: true } },
+          submitter: { select: { id: true, name: true, email: true, role: true } },
+          assignee: { select: { id: true, name: true, email: true, role: true } },
+          approver: { select: { id: true, name: true, email: true, role: true } },
           organization: { select: { id: true, name: true } },
           eco: {
             select: {
@@ -63,8 +63,7 @@ export const GET = withAuth(
                 select: {
                   id: true,
                   name: true,
-                  email: true,
-                  role: true
+                  email: true
                 }
               }
             },
@@ -197,9 +196,9 @@ export const PATCH = withAuth(
         where: { id },
         data: updateData,
         include: {
-          submitter: { select: { id: true, name: true, email: true, role: true, department: true } },
-          assignee: { select: { id: true, name: true, email: true, role: true, department: true } },
-          approver: { select: { id: true, name: true, email: true, role: true, department: true } },
+          submitter: { select: { id: true, name: true, email: true, role: true } },
+          assignee: { select: { id: true, name: true, email: true, role: true } },
+          approver: { select: { id: true, name: true, email: true, role: true } },
           organization: { select: { id: true, name: true } },
           eco: {
             select: {
@@ -222,17 +221,8 @@ export const PATCH = withAuth(
         },
       });
 
-      // Log workflow transition
-      await prisma.workflowTransition.create({
-        data: {
-          entityType: 'ECR',
-          entityId: id,
-          fromStatus: existingEcr.status,
-          toStatus: status,
-          transitionedBy: user.id,
-          comments: body.comments || `Status changed from ${existingEcr.status} to ${status}`
-        }
-      });
+      // Note: WorkflowTransition model removed from schema
+      // Workflow transitions are now tracked through revision history
 
       return NextResponse.json(updatedEcr);
     } catch (error) {
@@ -345,46 +335,23 @@ export const PUT = withAuth(
       const changedFields: string[] = [];
       const previousValues: any = {};
       const newValues: any = {};
-      
+
+      // Check which fields have actually changed
       Object.keys(updateData).forEach(field => {
-        if (field === 'updatedAt') return;
-        
-        if (field in existingEcr) {
-          const existingValue = existingEcr[field as keyof typeof existingEcr];
-          const newValue = updateData[field];
-          
-          const existingStr = existingValue === null || existingValue === undefined ? '' : String(existingValue);
-          const newStr = newValue === null || newValue === undefined ? '' : String(newValue);
-          
-          if (existingStr !== newStr) {
-            changedFields.push(field);
-            previousValues[field] = existingValue;
-            newValues[field] = newValue;
-          }
+        if (field !== 'updatedAt' && existingEcr[field as keyof typeof existingEcr] !== updateData[field]) {
+          changedFields.push(field);
+          previousValues[field] = existingEcr[field as keyof typeof existingEcr];
+          newValues[field] = updateData[field];
         }
       });
-
-      // Create revision record if there are changes
-      if (changedFields.length > 0) {
-        await prisma.eCRRevision.create({
-          data: {
-            ecrId: id,
-            userId: user.id,
-            previousData: previousValues,
-            newData: newValues,
-            changedFields: changedFields,
-            revisionNote: body.revisionNote || `Updated ${changedFields.length} field(s): ${changedFields.join(', ')}`,
-          },
-        });
-      }
 
       const updatedEcr = await prisma.eCR.update({
         where: { id },
         data: updateData,
         include: {
-          submitter: { select: { id: true, name: true, email: true, role: true, department: true } },
-          assignee: { select: { id: true, name: true, email: true, role: true, department: true } },
-          approver: { select: { id: true, name: true, email: true, role: true, department: true } },
+          submitter: { select: { id: true, name: true, email: true, role: true } },
+          assignee: { select: { id: true, name: true, email: true, role: true } },
+          approver: { select: { id: true, name: true, email: true, role: true } },
           organization: { select: { id: true, name: true } },
           eco: {
             select: {
@@ -406,6 +373,20 @@ export const PUT = withAuth(
           }
         },
       });
+
+      // Create revision record if there were changes
+      if (changedFields.length > 0) {
+        await prisma.eCRRevision.create({
+          data: {
+            ecrId: id,
+            userId: user.id,
+            previousData: previousValues,
+            newData: newValues,
+            changedFields: changedFields,
+            revisionNote: body.revisionNote || `Updated ${changedFields.length} field(s): ${changedFields.join(', ')}`,
+          },
+        });
+      }
 
       return NextResponse.json(updatedEcr);
     } catch (error) {

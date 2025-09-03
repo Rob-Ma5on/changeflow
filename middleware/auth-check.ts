@@ -254,8 +254,8 @@ export async function getEntityWithContext(
         entity = await prisma.eCR.findUnique({
           where: { id: entityId },
           include: {
-            submitter: { select: { department: true } },
-            assignee: { select: { department: true } }
+            submitter: { select: { id: true, role: true } },
+            assignee: { select: { id: true, role: true } }
           }
         });
         break;
@@ -264,8 +264,8 @@ export async function getEntityWithContext(
         entity = await prisma.eCO.findUnique({
           where: { id: entityId },
           include: {
-            submitter: { select: { department: true } },
-            assignee: { select: { department: true } }
+            submitter: { select: { id: true, role: true } },
+            assignee: { select: { id: true, role: true } }
           }
         });
         break;
@@ -274,8 +274,8 @@ export async function getEntityWithContext(
         entity = await prisma.eCN.findUnique({
           where: { id: entityId },
           include: {
-            submitter: { select: { department: true } },
-            assignee: { select: { department: true } }
+            submitter: { select: { id: true, role: true } },
+            assignee: { select: { id: true, role: true } }
           }
         });
         break;

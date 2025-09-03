@@ -43,6 +43,12 @@ export const ECR_WORKFLOW_RULES: StatusTransition[] = [
     description: 'Move to detailed analysis phase - requires technical assessment'
   },
   {
+    from: 'UNDER_REVIEW',
+    to: 'APPROVED',
+    requiredRoles: ['MANAGER', 'ADMIN'],
+    description: 'Direct approval from review - simplified workflow'
+  },
+  {
     from: 'IN_ANALYSIS',
     to: 'PENDING_APPROVAL',
     requiredRoles: ['ENGINEER', 'ADMIN'],

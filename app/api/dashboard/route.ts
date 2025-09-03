@@ -656,11 +656,11 @@ async function getRoleSpecificActionItems(organizationId: string, userId: string
           tx.eCR.findMany({
             where: { 
               organizationId, 
-              status: 'PENDING_APPROVAL'
+              status: 'SUBMITTED'
             },
             select: {
               id: true, ecrNumber: true, title: true, status: true, priority: true,
-              createdAt: true, estimatedCost: true
+              createdAt: true, costImpact: true
             },
             orderBy: { createdAt: 'asc' },
             take: 10

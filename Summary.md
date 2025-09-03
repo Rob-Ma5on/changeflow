@@ -61,7 +61,14 @@ ChangeFlow is a complete engineering change management system built with Next.js
 - **Touch-Friendly**: Optimized buttons and touch targets
 - **Scrollable Tables**: Horizontal scroll for table overflow
 
-## 🚀 Recent Updates (Latest: Authentication System Fixes & Database Schema Alignment)
+## 🚀 Recent Updates (Latest: Critical ECR Creation Bug Fix)
+
+### Critical ECR Creation Bug Fix
+- **Permission System Fix**: Resolved critical JavaScript error `TypeError: Cannot read properties of undefined (reading 'find')` in the permissions system
+- **API Route Correction**: Fixed `/api/users` endpoint to include the `role` field in SELECT queries, resolving undefined user role issues
+- **Comprehensive Testing**: Validated ECR creation functionality across all user roles (ADMIN, ENGINEER, REQUESTOR) using Playwright automation
+- **Multi-Step Form Validation**: Ensured complete ECR creation workflow functions properly from problem identification through submission
+- **Error Handling Enhancement**: Added proper null/undefined validation in permissions functions to prevent future crashes
 
 ### Authentication System Fixes & Database Schema Alignment
 - **8-Role User System**: Implemented comprehensive role-based access control with ADMIN, MANAGER, ENGINEER, QUALITY, MANUFACTURING, REQUESTOR, DOCUMENT_CONTROL, VIEWER roles
@@ -140,4 +147,4 @@ npm run build
 
 ---
 
-*Last updated: 2025-09-02 - Authentication System Fixes and Database Schema Alignment*
+*Last updated: 2025-09-02 - Critical ECR Creation Bug Fix*

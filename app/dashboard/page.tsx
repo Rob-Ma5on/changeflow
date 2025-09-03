@@ -220,7 +220,7 @@ export default function DashboardPage() {
       ],
       backgroundColor: ['#dc2626', '#ea580c', '#ca8a04', '#16a34a'],
       borderWidth: 2,
-      borderColor: '#ffffff'
+      borderColor: typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? '#374151' : '#ffffff'
     }]
   };
 
@@ -234,7 +234,7 @@ export default function DashboardPage() {
       ],
       backgroundColor: ['#dc2626', '#ea580c', '#16a34a'],
       borderWidth: 2,
-      borderColor: '#ffffff'
+      borderColor: typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? '#374151' : '#ffffff'
     }]
   };
 
@@ -250,10 +250,12 @@ export default function DashboardPage() {
       ],
       backgroundColor: ['#6b7280', '#f59e0b', '#3b82f6', '#10b981'],
       borderWidth: 1,
-      borderColor: '#ffffff'
+      borderColor: typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? '#374151' : '#ffffff'
     }]
   };
 
+  const isDarkMode = typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
+  
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -265,14 +267,15 @@ export default function DashboardPage() {
           usePointStyle: true,
           font: {
             size: 12
-          }
+          },
+          color: isDarkMode ? '#e5e7eb' : '#374151'
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(0, 0, 0, 0.8)',
         titleColor: '#ffffff',
         bodyColor: '#ffffff',
-        borderColor: '#374151',
+        borderColor: isDarkMode ? '#6b7280' : '#374151',
         borderWidth: 1
       }
     }
@@ -634,43 +637,43 @@ export default function DashboardPage() {
       {/* Phase 1 Metrics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Priority Breakdown Chart */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Priority Breakdown</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Priority Breakdown</h3>
           <div className="h-64">
             <Pie data={priorityChartData} options={chartOptions} />
           </div>
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             Open ECRs by priority level
           </div>
         </div>
 
         {/* Customer Impact Summary */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Customer Impact</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Customer Impact</h3>
           <div className="h-64">
             <Doughnut data={customerImpactChartData} options={chartOptions} />
           </div>
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             Distribution of customer impact levels
           </div>
         </div>
 
         {/* Implementation Status Chart */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">ECN Implementation Status</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">ECN Implementation Status</h3>
           <div className="h-64">
             <Bar data={implementationStatusChartData} options={barChartOptions} />
           </div>
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
             Current status of ECN implementations
           </div>
         </div>
       </div>
 
       {/* This Week's Targets */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">This Week's Target Dates</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">This Week's Target Dates</h3>
         </div>
         <div className="p-6">
           {stats.thisWeekTargets.length > 0 ? (
@@ -721,7 +724,7 @@ export default function DashboardPage() {
       {/* Enhanced Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Link href="/dashboard/ecr" className="block">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -731,10 +734,10 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4 flex-1">
-                <p className="text-sm font-medium text-gray-600">Open ECRs</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Open ECRs</p>
                 <div className="flex items-baseline">
-                  <p className="text-2xl font-semibold text-gray-900">{stats.openEcrs}</p>
-                  <p className="ml-2 text-sm text-gray-500">of {stats.totalEcrs} total</p>
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.openEcrs}</p>
+                  <p className="ml-2 text-sm text-gray-500 dark:text-gray-400">of {stats.totalEcrs} total</p>
                 </div>
               </div>
             </div>
@@ -742,7 +745,7 @@ export default function DashboardPage() {
         </Link>
 
         <Link href="/dashboard/eco" className="block">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -752,15 +755,15 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4 flex-1">
-                <p className="text-sm font-medium text-gray-600">ECOs In Progress</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.ecosInProgress}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">ECOs In Progress</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.ecosInProgress}</p>
               </div>
             </div>
           </div>
         </Link>
 
         <Link href="/dashboard/ecn" className="block">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
@@ -770,14 +773,14 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="ml-4 flex-1">
-                <p className="text-sm font-medium text-gray-600">Pending ECNs</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.pendingEcns}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending ECNs</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.pendingEcns}</p>
               </div>
             </div>
           </div>
         </Link>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -787,23 +790,23 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-600">This Month</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.completedThisMonth}</p>
-              <p className="text-xs text-gray-500">Changes Completed</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">This Month</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.completedThisMonth}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Changes Completed</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Role-Specific Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {getRoleSpecificQuickActions().slice(0, 3).map((action, index) => (
             <Link
               key={index}
               href={action.href}
-              className={`flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ${
+              className={`flex items-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
                 action.primary ? 'ring-2 ring-blue-500 border-blue-500' : ''
               }`}
             >
@@ -811,8 +814,8 @@ export default function DashboardPage() {
                 {action.icon}
               </div>
               <div>
-                <p className="font-medium text-gray-900">{action.title}</p>
-                <p className="text-sm text-gray-500">{action.description}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{action.title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
               </div>
             </Link>
           ))}
@@ -820,9 +823,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Enhanced Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Recent Activity</h3>
         </div>
         <div className="p-6">
           <div className="flow-root">

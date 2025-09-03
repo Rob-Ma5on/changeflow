@@ -123,21 +123,21 @@ function MetricCard({ metric, value, target, unit, trend, trendValue, descriptio
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-medium text-gray-600">{metric.label}</h4>
+        <h4 className="text-sm font-medium text-gray-600 dark:text-gray-300">{metric.label}</h4>
         {trend && getTrendIcon()}
       </div>
       
       <div className="flex items-baseline space-x-2">
         <span className={`text-2xl font-bold ${
-          target ? (isOnTarget ? 'text-green-600' : 'text-red-600') : 'text-gray-900'
+          target ? (isOnTarget ? 'text-green-600' : 'text-red-600') : 'text-gray-900 dark:text-white'
         }`}>
           {formatValue(value)}
         </span>
         
         {target && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             / {formatValue(target)} target
           </span>
         )}
@@ -155,7 +155,7 @@ function MetricCard({ metric, value, target, unit, trend, trendValue, descriptio
         </div>
       )}
       
-      <p className="text-xs text-gray-500 mt-2">{description}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{description}</p>
     </div>
   );
 }
@@ -165,7 +165,7 @@ export default function RoleMetrics({ role, metrics, period = 'This Month' }: Ro
   
   if (roleMetrics.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Metrics</h3>
         <div className="text-center py-8 text-gray-500">
           <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,12 +178,12 @@ export default function RoleMetrics({ role, metrics, period = 'This Month' }: Ro
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-medium text-gray-900">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
           {role.replace('_', ' ')} Metrics
         </h3>
-        <span className="text-sm text-gray-500">{period}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{period}</span>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -205,8 +205,8 @@ export default function RoleMetrics({ role, metrics, period = 'This Month' }: Ro
       </div>
       
       {/* Performance Summary */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Performance Summary</h4>
+      <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Performance Summary</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="text-center">
             <div className="text-lg font-semibold text-green-600">
@@ -215,14 +215,14 @@ export default function RoleMetrics({ role, metrics, period = 'This Month' }: Ro
                 return m.target ? value >= m.target : true;
               }).length}
             </div>
-            <div className="text-gray-600">Targets Met</div>
+            <div className="text-gray-600 dark:text-gray-300">Targets Met</div>
           </div>
           
           <div className="text-center">
             <div className="text-lg font-semibold text-blue-600">
               {roleMetrics.filter(m => metrics[m.key]?.trend === 'up').length}
             </div>
-            <div className="text-gray-600">Improving</div>
+            <div className="text-gray-600 dark:text-gray-300">Improving</div>
           </div>
           
           <div className="text-center">
@@ -232,7 +232,7 @@ export default function RoleMetrics({ role, metrics, period = 'This Month' }: Ro
                 return m.target && value < m.target;
               }).length}
             </div>
-            <div className="text-gray-600">Below Target</div>
+            <div className="text-gray-600 dark:text-gray-300">Below Target</div>
           </div>
         </div>
       </div>

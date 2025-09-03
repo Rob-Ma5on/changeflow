@@ -448,10 +448,10 @@ export default function ECOPage() {
         </div>
       ) : (
         // List View
-        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <ColumnHeader
                     title="ECO Number"
@@ -640,15 +640,15 @@ export default function ECOPage() {
       )}
 
       {/* Summary Stats */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Summary</h3>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Summary</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {columns.map((column) => (
             <div key={column.id} className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
                 {getEcosForColumn(column.status).length}
               </div>
-              <div className="text-sm text-gray-500">{column.title}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{column.title}</div>
             </div>
           ))}
         </div>

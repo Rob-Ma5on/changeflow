@@ -30,8 +30,6 @@ async function main() {
       name: 'Admin Test User',
       password: hashedPassword,
       role: 'ADMIN',
-      department: 'Administration',
-      departmentRole: 'System Administrator',
       organizationId: organization.id,
     },
   });
@@ -44,8 +42,6 @@ async function main() {
       name: 'Manager Test User',
       password: hashedPassword,
       role: 'MANAGER',
-      department: 'Engineering',
-      departmentRole: 'Engineering Manager',
       organizationId: organization.id,
     },
   });
@@ -58,8 +54,6 @@ async function main() {
       name: 'Engineer Test User',
       password: hashedPassword,
       role: 'ENGINEER',
-      department: 'Engineering',
-      departmentRole: 'Senior Design Engineer',
       organizationId: organization.id,
     },
   });
@@ -72,8 +66,6 @@ async function main() {
       name: 'Quality Test User',
       password: hashedPassword,
       role: 'QUALITY',
-      department: 'Quality Assurance',
-      departmentRole: 'Quality Control Engineer',
       organizationId: organization.id,
     },
   });
@@ -86,8 +78,6 @@ async function main() {
       name: 'Manufacturing Test User',
       password: hashedPassword,
       role: 'MANUFACTURING',
-      department: 'Manufacturing',
-      departmentRole: 'Manufacturing Engineer',
       organizationId: organization.id,
     },
   });
@@ -100,8 +90,6 @@ async function main() {
       name: 'Requestor Test User',
       password: hashedPassword,
       role: 'REQUESTOR',
-      department: 'Operations',
-      departmentRole: 'Process Specialist',
       organizationId: organization.id,
     },
   });
@@ -114,8 +102,6 @@ async function main() {
       name: 'Document Control Test User',
       password: hashedPassword,
       role: 'DOCUMENT_CONTROL',
-      department: 'Document Control',
-      departmentRole: 'Document Controller',
       organizationId: organization.id,
     },
   });
@@ -128,8 +114,6 @@ async function main() {
       name: 'Viewer Test User',
       password: hashedPassword,
       role: 'VIEWER',
-      department: 'External',
-      departmentRole: 'Stakeholder',
       organizationId: organization.id,
     },
   });
@@ -253,7 +237,7 @@ async function main() {
       reason: 'Quality improvement initiative',
       priority: 'MEDIUM',
       reasonForChange: 'Quality improvement, Customer satisfaction',
-      customerImpact: 'POSITIVE_IMPACT',
+      customerImpact: 'INDIRECT_IMPACT',
       status: 'SUBMITTED',
       organizationId: organization.id,
       submitterId: qualityUser.id,
@@ -283,14 +267,13 @@ async function main() {
       reason: 'Cost reduction and sustainability',
       priority: 'LOW',
       reasonForChange: 'Cost reduction, Environmental impact',
-      customerImpact: 'POSITIVE_IMPACT',
+      customerImpact: 'INDIRECT_IMPACT',
       status: 'UNDER_REVIEW',
       organizationId: organization.id,
       submitterId: requestorUser.id,
       assigneeId: engineerUser.id,
       approverId: managerUser.id,
       submittedAt: new Date('2024-01-10T11:00:00Z'),
-      reviewStartedAt: new Date('2024-01-12T08:00:00Z'),
       affectedProducts: 'All packaged products',
       affectedDocuments: 'Packaging Spec PS-100, Environmental Guide EG-200',
       costImpact: 25000.00,
@@ -320,7 +303,6 @@ async function main() {
       assigneeId: engineerUser.id,
       approverId: adminUser.id,
       submittedAt: new Date('2024-01-08T13:30:00Z'),
-      reviewStartedAt: new Date('2024-01-09T09:00:00Z'),
       affectedProducts: 'Automated production lines',
       affectedDocuments: 'System Specs SS-400, Control Logic CL-500',
       costImpact: 75000.00,
@@ -351,7 +333,6 @@ async function main() {
       assigneeId: engineerUser.id,
       approverId: managerUser.id,
       submittedAt: new Date('2023-12-15T10:00:00Z'),
-      reviewStartedAt: new Date('2023-12-16T08:00:00Z'),
       approvedAt: new Date('2023-12-20T14:00:00Z'),
       affectedProducts: 'All manufactured products',
       affectedDocuments: 'Maintenance Schedule MS-100, Tool List TL-200',
@@ -383,9 +364,7 @@ async function main() {
       assigneeId: engineerUser.id,
       approverId: managerUser.id,
       submittedAt: new Date('2023-12-10T09:00:00Z'),
-      reviewStartedAt: new Date('2023-12-11T10:00:00Z'),
       rejectedAt: new Date('2023-12-18T16:00:00Z'),
-      rejectionReason: 'Cost-benefit analysis shows insufficient ROI for the proposed material upgrade.',
       affectedProducts: 'Product Line D',
       costImpact: 45000.00,
       estimatedCostRange: 'FROM_10K_TO_50K',
@@ -408,7 +387,7 @@ async function main() {
       submitterId: managerUser.id,
       assigneeId: manufacturingUser.id,
       approverId: adminUser.id,
-      status: 'PLANNING',
+      status: 'BACKLOG',
       priority: 'MEDIUM',
       submittedAt: new Date('2023-12-21T08:00:00Z'),
       approvedAt: new Date('2023-12-21T16:00:00Z'),
@@ -444,7 +423,6 @@ async function main() {
       priority: 'HIGH',
       submittedAt: new Date('2024-01-20T08:00:00Z'),
       approvedAt: new Date('2024-01-21T10:00:00Z'),
-      startedAt: new Date('2024-01-22T08:00:00Z'),
       targetDate: new Date('2024-04-15T00:00:00Z'),
       implementationPlan: 'Phase 1: Tool redesign, Phase 2: Validation, Phase 3: Training',
       testingPlan: 'Pilot run validation, performance testing, quality verification',
@@ -458,7 +436,6 @@ async function main() {
       implementationTeam: 'Engineering, Manufacturing, Quality, Training',
       inventoryImpact: true,
       estimatedTotalCost: 15000.00,
-      actualProgress: 35,
     },
   });
 
@@ -474,11 +451,10 @@ async function main() {
       submitterId: managerUser.id,
       assigneeId: qualityUser.id,
       approverId: adminUser.id,
-      status: 'VERIFICATION',
+      status: 'REVIEW',
       priority: 'HIGH',
       submittedAt: new Date('2024-01-05T08:00:00Z'),
       approvedAt: new Date('2024-01-06T10:00:00Z'),
-      startedAt: new Date('2024-01-08T08:00:00Z'),
       targetDate: new Date('2024-03-15T00:00:00Z'),
       implementationPlan: 'Deploy safety protocols, train personnel, audit compliance',
       testingPlan: 'Safety audit, compliance verification, incident tracking',
@@ -492,7 +468,6 @@ async function main() {
       implementationTeam: 'Safety, Manufacturing, Quality, HR',
       inventoryImpact: false,
       estimatedTotalCost: 12000.00,
-      actualProgress: 85,
     },
   });
 
@@ -512,7 +487,6 @@ async function main() {
       priority: 'MEDIUM',
       submittedAt: new Date('2023-11-15T08:00:00Z'),
       approvedAt: new Date('2023-11-16T10:00:00Z'),
-      startedAt: new Date('2023-11-20T08:00:00Z'),
       completedAt: new Date('2023-12-15T16:00:00Z'),
       targetDate: new Date('2023-12-15T00:00:00Z'),
       implementationPlan: 'Update procedures, train inspectors, validate effectiveness',
@@ -527,7 +501,6 @@ async function main() {
       implementationTeam: 'Quality, Training, Manufacturing',
       inventoryImpact: false,
       estimatedTotalCost: 3500.00,
-      actualProgress: 100,
     },
   });
 
@@ -561,7 +534,7 @@ async function main() {
       distributionList: 'quality@test.com, manufacturing@test.com, manager@test.com',
       internalStakeholders: 'Quality Team, Manufacturing, Management',
       customerNotificationRequired: 'INFORMATIONAL',
-      responseDeadline: 'DAYS_7',
+      responseDeadline: 'DAYS_5',
       implementationStatus: 'COMPLETE',
       actualImplementationDate: new Date('2023-12-15T00:00:00Z'),
       acknowledgmentStatus: 'Partially Acknowledged',
@@ -582,7 +555,7 @@ async function main() {
       organizationId: organization.id,
       submitterId: qualityUser.id,
       assigneeId: documentControlUser.id,
-      status: 'PENDING_DISTRIBUTION',
+      status: 'PENDING_APPROVAL',
       effectiveDate: new Date('2024-03-15T00:00:00Z'),
       changesImplemented: 'Safety procedures SP-200 created, training materials developed',
       affectedItems: 'All manufacturing processes, Safety equipment',
@@ -610,7 +583,7 @@ async function main() {
       organizationId: organization.id,
       submitterId: manufacturingUser.id,
       assigneeId: documentControlUser.id,
-      status: 'ACKNOWLEDGED',
+      status: 'EFFECTIVE',
       effectiveDate: new Date('2023-11-01T00:00:00Z'),
       distributedAt: new Date('2023-10-25T08:00:00Z'),
       changesImplemented: 'Maintenance schedules MS-100 updated, tool tracking system updated',
@@ -620,7 +593,7 @@ async function main() {
       distributionList: 'manufacturing@test.com, requestor@test.com, manager@test.com',
       internalStakeholders: 'Manufacturing, Maintenance, Management',
       customerNotificationRequired: 'NOT_REQUIRED',
-      responseDeadline: 'DAYS_3',
+      responseDeadline: 'DAYS_5',
       implementationStatus: 'COMPLETE',
       actualImplementationDate: new Date('2023-11-01T00:00:00Z'),
       acknowledgmentStatus: 'Fully Acknowledged',
@@ -650,9 +623,9 @@ async function main() {
       verificationMethod: 'Assembly line validation, quality check verification',
       distributionList: 'manufacturing@test.com, quality@test.com, requestor@test.com',
       internalStakeholders: 'Manufacturing, Quality, Engineering',
-      customerNotificationRequired: 'REQUIRED',
-      responseDeadline: 'DAYS_7',
-      implementationStatus: 'PENDING',
+      customerNotificationRequired: 'FORMAL',
+      responseDeadline: 'DAYS_5',
+      implementationStatus: 'IN_PROGRESS',
       acknowledgmentStatus: 'Overdue Responses',
       finalDocumentationSummary: 'Widget process changes documented. Awaiting manufacturing confirmation.',
       closureApprover: 'Engineering Manager',
@@ -684,14 +657,14 @@ async function main() {
   console.log(`  • ${approvedEcr.ecrNumber} (APPROVED)`);
   console.log(`  • ${rejectedEcr.ecrNumber} (REJECTED)`);
   console.log('- ECOs created:');
-  console.log(`  • ${eco1.ecoNumber} (PLANNING)`);
+  console.log(`  • ${eco1.ecoNumber} (BACKLOG)`);
   console.log(`  • ${eco2.ecoNumber} (IN_PROGRESS)`);
-  console.log(`  • ${eco3.ecoNumber} (VERIFICATION)`);
+  console.log(`  • ${eco3.ecoNumber} (REVIEW)`);
   console.log(`  • ${eco4.ecoNumber} (COMPLETED)`);
   console.log('- ECNs created:');
   console.log(`  • ${ecn1.ecnNumber} (DISTRIBUTED - Partially Acknowledged)`);
-  console.log(`  • ${ecn2.ecnNumber} (PENDING_DISTRIBUTION)`);
-  console.log(`  • ${ecn3.ecnNumber} (ACKNOWLEDGED - Fully Acknowledged)`);
+  console.log(`  • ${ecn2.ecnNumber} (PENDING_APPROVAL)`);
+  console.log(`  • ${ecn3.ecnNumber} (EFFECTIVE - Fully Acknowledged)`);
   console.log(`  • ${ecn4.ecnNumber} (DISTRIBUTED - Overdue Responses)`);
   console.log('');
   console.log('✨ Ready for comprehensive workflow testing!');
